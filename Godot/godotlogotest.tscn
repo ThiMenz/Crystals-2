@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://ccfede3wre1d4"]
+
+[ext_resource type="Texture2D" uid="uid://c06lwih8iyb71" path="res://icon.svg" id="1_kueaq"]
+
+[node name="Sprite3D" type="Sprite3D"]
+transform = Transform3D(1, 0, -4.37113e-08, -4.37114e-08, 1.91069e-15, -0.999999, 0, 1, 1.91068e-15, -0.784945, 4.9043, 39.7252)
+axis = 1
+texture = ExtResource("1_kueaq")
