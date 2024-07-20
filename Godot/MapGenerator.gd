@@ -7,6 +7,8 @@ class_name MapGen extends Node3D
 @export var DebugMaterials:Array[Material]
 @export var TestBiomInfo:BiomInfo
 
+@export var randomizationStrength : Vector2
+
 var rng = RandomNumberGenerator.new()
 
 func _ready():
@@ -24,53 +26,6 @@ func _ready():
 		add_child(polyObj)
 		polyObj.polygon = PackedVector2Array(triangle.edges)
 		polyObj.material = DebugMaterials[6] 
-	
-	#
-	#
-	#var timestamp = Time.get_ticks_usec()
-	#
-	#var bbgOutp:Dictionary = BBG([get_QC(Vector2i(0,0)).triangle1], [[.0, 1], [.0, .3], [.1, 1]], [10, 18, 3], [false, true, false], 600)
-	#print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
-	#var subdivs:Array[Dictionary] = ConquerGen(bbgOutp, .03, .05, 1)
-	#print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
-	#var freeBorderRegions:Array = RegionBlocking(subdivs, bbgOutp["Entry"], .6, 1, .0, 2)
-	#print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
-	#var expansions:Array[QCTriangle] = GetBiomTriangleExpansionStartPoints(subdivs, freeBorderRegions, bbgOutp["All"])
-	#print(freeBorderRegions)
-	#
-	##var a:int = 0
-	#for region in subdivs:
-	#	a += 1
-	#	var fbr:bool = freeBorderRegions.has(region["ID"])
-	#	for triangle in region["All"]:
-	#		var polyObj = PolygonObject.instantiate()
-	#		add_child(polyObj)
-	#		polyObj.polygon = PackedVector2Array(triangle.edges)
-	#		
-	#		#0 if region["Blocked"] else 1
-	#		#if expansions.has(triangle): polyObj.material = DebugMaterials[6] 
-	#		if fbr: polyObj.material = DebugMaterials[5]
-	#		elif region["Blocked"]: polyObj.material = DebugMaterials[14]
-	#		#elif region["IsAtBorder"]: polyObj.material = DebugMaterials[10]
-	#		elif bbgOutp["Entry"] == triangle: polyObj.material = DebugMaterials[4]
-	#		else: polyObj.material = DebugMaterials[3] #DebugMaterials[a % len(DebugMaterials)]
-	#		
-	#	
-	#for expansion in expansions:
-	#	var polyObj = PolygonObject.instantiate()
-	#	add_child(polyObj)
-	#	polyObj.polygon = PackedVector2Array(expansion.edges)
-	#	polyObj.material = DebugMaterials[6] 
-		
-	#BBG([get_QC(Vector2i(0,0)).triangle1], [[0, 1], [0, .4], [0, .1], [.05, .8]], [45, 20, 25, 50], [true, true, true, false]) #[[0.08], [0]], [100, 3]
-	#print(QCs.size())
-	return
-	
-	instantiateBaseTriangles(90)
-	
-	print(rng.seed)
-	
-	pass # Replace with function body.
 
 #region ** MAP GENERATION **
 
@@ -444,37 +399,6 @@ func BBG(pStartTriangle:Array, pChanceDegrationFunc:Array, pMaxDepth:Array, pLin
 		
 	return {"Start":bbgFQCT, "Border":borderTriangles, "Inner":innerTriangles, "All":allTriangles, "Entry":pStartTriangle[0], "Null":len(visitedTriangles) < pMinSize}
 		
-	#return {"Null":true}
-	
-	#print(">>" + str(a))
-	#var xrange = range(qc_min_x, qc_max_x + 1)
-	#var yrange = range(qc_min_y, qc_max_y + 1)
-	#var xrangeinv = range(qc_max_x, qc_min_x - 1, -1)
-	#var yrangeinv = range(qc_max_y, qc_min_y - 1, -1)
-	#var borderTriangles:Dictionary = {}
-	#
-	#for x in xrange:
-	#	var prevQCVisited:bool = false
-	#	for y in yrange: prevQCVisited = VVV(borderTriangles, visitedTriangles, prevQCVisited, x, y, true, false)
-	#	prevQCVisited = false
-	#	for y in yrangeinv: prevQCVisited = VVV(borderTriangles, visitedTriangles, prevQCVisited, x, y, true, true)
-	#for y in yrange:
-	#	var prevQCVisited:bool = false
-	#	for x in xrange: prevQCVisited = VVV(borderTriangles, visitedTriangles, prevQCVisited, x, y, false, false)
-	#	prevQCVisited = false
-	#	for x in xrangeinv: prevQCVisited = VVV(borderTriangles, visitedTriangles, prevQCVisited, x, y, false, true)
-	#
-	#for triangle in borderTriangles:
-	#	var polyObj = PolygonObject.instantiate()
-	#	add_child(polyObj)
-	#	polyObj.polygon = PackedVector2Array(triangle.edges)
-	#	polyObj.material = DebugMaterial1
-	#for triangle in innerTriangles:
-	#	var polyObj = PolygonObject.instantiate()
-	#	add_child(polyObj)
-	#	polyObj.polygon = PackedVector2Array(triangle.edges)
-	#	polyObj.material = DebugMaterial2
-		
 func Vec2iInBox(vec:Vector2i, minX:int, maxX:int, minY:int, maxY:int):
 	return vec.x >= minX && vec.x <= maxX && vec.y >= minY && vec.y <= maxY
 	
@@ -510,79 +434,4 @@ func BBGRecursive(pDepth:int, pMaxDepth:int, pChanceAtDepth:Array):
 
 #endregion
 
-#region ** BASE TRIANGLES **
-
-@export_category("BaseTriangles")
-@export var origin : Vector2
-@export var gridDist : Vector2
-@export var randomizationStrength : Vector2
-
-var triangles = []
-func instantiateBaseTriangles(pSize: int):
-	var tvec2 : Vector2 = origin
-	var rngEgdePoints = []
-	
-	var tTimeStamp:int = Time.get_ticks_msec()
-	
-	for i in range(0, pSize):	
-		rngEgdePoints.append([])
-		for j in range(0, pSize):
-			var tPos : Vector2 = randomizeBaseTrianglePosition(tvec2)
-			rngEgdePoints[i].append(tPos)
-			tvec2.x += gridDist.x
-			
-		tvec2.x = origin.x
-		tvec2.y += gridDist.y	
-	
-	print(Time.get_ticks_msec()-tTimeStamp)
-	
-	for i in range(0, pSize-1):
-		for j in range(0, pSize-1):
-			var tSquare = getSquareOfPointIdx(i, j, rngEgdePoints)
-			var diagonalDir : bool = !rng.randi_range(0, 1)
-				
-			triangles.append(MapTriangle.new([tSquare[0], tSquare[1], tSquare[2]] 
-			if diagonalDir else [tSquare[2], tSquare[0], tSquare[3]], true))
-			triangles.append(MapTriangle.new([tSquare[3], tSquare[1], tSquare[2]] 
-			if diagonalDir else [tSquare[3], tSquare[0], tSquare[1]], false))
-			
-	print(Time.get_ticks_msec()-tTimeStamp)
-			
-	var tpr : int = pSize * 2 - 2 # abbreviation for trianglesPerRow
-	var triangleCount : int = len(triangles)
-	for i in range(0, triangleCount, 2):
-		var idxsForSquares : Array = [i-1,i-2,i-tpr,i-tpr+1]
-		checkForNeighborTriangleByIDs(triangles[i], idxsForSquares, triangleCount)
-		checkForNeighborTriangleByIDs(triangles[i+1], idxsForSquares + [i], triangleCount)
-	
-	print(Time.get_ticks_msec()-tTimeStamp)
-	
-	for t in triangles:	
-		var polyObj = PolygonObject.instantiate()
-		add_child(polyObj)
-		polyObj.polygon = PackedVector2Array(t.edges)
-		polyObj.material = DebugMaterial1 if t.debugDiagonal else DebugMaterial2
-
-func getSquareOfPointIdx(pX : int, pY: int, pPoints : Array):
-	return [pPoints[pX][pY], pPoints[pX + 1][pY], pPoints[pX][pY + 1], pPoints[pX + 1][pY + 1]]
-	
-func randomizeBaseTrianglePosition(pPos: Vector2) -> Vector2:
-	return Vector2(
-		pPos.x + rng.randf_range(-randomizationStrength.x, randomizationStrength.x),
-		pPos.y + rng.randf_range(-randomizationStrength.y, randomizationStrength.y)
-	)
-	
-func checkForNeighborTriangleByIDs(pTriangle : MapTriangle, pIdxs : Array, maxTriangleID : int):
-	for i in pIdxs:
-		if i < 0 || (i > maxTriangleID - 1): continue
-		pTriangle.checkForNeighborTriangle(triangles[i])
-		
-	
-	
 #endregion
-
-#endregion
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
-	pass
