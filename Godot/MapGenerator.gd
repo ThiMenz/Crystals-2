@@ -22,7 +22,8 @@ func _ready():
 	print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
 	var subdivs:Array[Dictionary] = ConquerGen(bbgOutp, .03, .05, 1)
 	print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
-	RegionBlocking(subdivs)
+	RegionBlocking(subdivs, .6, 1, .2, 2)
+	print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
 	
 	var a:int = 0
 	for region in subdivs:
@@ -31,7 +32,7 @@ func _ready():
 			var polyObj = PolygonObject.instantiate()
 			add_child(polyObj)
 			polyObj.polygon = PackedVector2Array(triangle.edges)
-			
+			#0 if region["Blocked"] else 1
 			polyObj.material = DebugMaterials[0 if region["Blocked"] else 1] #DebugMaterials[a % len(DebugMaterials)]
 			
 		
@@ -70,31 +71,36 @@ func get_QC(pPos:Vector2i):
 
 #region ** Region Blocking **
 
-func RegionBlocking(regions:Array[Dictionary]):
+func RegionBlocking(regions:Array[Dictionary], generalBlockingChance:float, borderChanceBoost:float, neighboringBlockerBoost:float, borderSkipCount:int):
 	var tCountOfBorderRegions:int = 0
-
+	
 	for region in regions:
-		if region["ID"] == 0: continue
+		var curRegionID:int = region["ID"]
+		if curRegionID == 0: continue
+		if region["IsAtBorder"] && tCountOfBorderRegions < borderSkipCount:
+			tCountOfBorderRegions += 1
+			continue
+		
+		var neighboringSubdivIsBlocked:bool = false
+		for neighbor in region["Neighbors"]:
+			if regions[neighbor]["Blocked"]: neighboringSubdivIsBlocked = true
 		
 		var randomizor:Vector2i = region["Start"].qc.pos
-		var chance:float = .5
+		var chance:float = generalBlockingChance * (borderChanceBoost if region["IsAtBorder"] else 1) * (neighboringBlockerBoost if neighboringSubdivIsBlocked else 1)
 		
-		if VRNG.rand(randomizor) < chance && RegionBlockingDijsktraApproval(regions):
+		if VRNG.rand(randomizor) < chance && RegionBlockingDijsktraApproval(regions, curRegionID):
 			region["Blocked"] = true
 
-
-func RegionBlockingDijsktraApproval(regions:Array[Dictionary]) -> bool:	
+func RegionBlockingDijsktraApproval(regions:Array[Dictionary], newlyBlockedRegion:int) -> bool:	
 	
 	var tFrontiers = [0]
 	var visDict = {0:true}
-	print("----")
 	while len(tFrontiers) != 0:	
 		var nextFrontiers = []
 		for regionID in tFrontiers:
-			print(regionID)
 			var region:Dictionary = regions[regionID]	
 			for neighbor in region["Neighbors"]:
-				if visDict.has(neighbor) || regions[neighbor]["Blocked"]: continue
+				if visDict.has(neighbor) || regions[neighbor]["Blocked"] || regionID == newlyBlockedRegion: continue
 						
 				visDict[neighbor] = true
 				nextFrontiers.append(neighbor)
@@ -103,8 +109,6 @@ func RegionBlockingDijsktraApproval(regions:Array[Dictionary]) -> bool:
 		
 	for region in regions:
 		if !region["Blocked"] && !visDict.has(region["ID"]): 
-			print(visDict)
-			print("!!" + str(region["ID"]))
 			return false
 		
 	return true
