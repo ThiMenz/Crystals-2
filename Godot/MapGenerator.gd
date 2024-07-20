@@ -20,8 +20,9 @@ func _ready():
 	
 	var bbgOutp:Dictionary = BBG([get_QC(Vector2i(0,0)).triangle1], [[.0, 1], [.0, .3], [.1, 1]], [10, 18, 3], [false, true, false])
 	print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
-	var subdivs:Array = ConquerGen(bbgOutp, .03, .05, 1)
+	var subdivs:Array[Dictionary] = ConquerGen(bbgOutp, .03, .05, 1)
 	print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
+	RegionBlocking(subdivs)
 	
 	var a:int = 0
 	for region in subdivs:
@@ -31,7 +32,7 @@ func _ready():
 			add_child(polyObj)
 			polyObj.polygon = PackedVector2Array(triangle.edges)
 			
-			polyObj.material = DebugMaterials[a % len(DebugMaterials)]
+			polyObj.material = DebugMaterials[0 if region["Blocked"] else 1] #DebugMaterials[a % len(DebugMaterials)]
 			
 		
 	for triangle in bbgOutp["Border"]:
@@ -67,58 +68,113 @@ func get_QC(pPos:Vector2i):
 
 #endregion
 
+#region ** Region Blocking **
+
+func RegionBlocking(regions:Array[Dictionary]):
+	var tCountOfBorderRegions:int = 0
+
+	for region in regions:
+		if region["ID"] == 0: continue
+		
+		var randomizor:Vector2i = region["Start"].qc.pos
+		var chance:float = .5
+		
+		if VRNG.rand(randomizor) < chance && RegionBlockingDijsktraApproval(regions):
+			region["Blocked"] = true
+
+
+func RegionBlockingDijsktraApproval(regions:Array[Dictionary]) -> bool:	
+	
+	var tFrontiers = [0]
+	var visDict = {0:true}
+	print("----")
+	while len(tFrontiers) != 0:	
+		var nextFrontiers = []
+		for regionID in tFrontiers:
+			print(regionID)
+			var region:Dictionary = regions[regionID]	
+			for neighbor in region["Neighbors"]:
+				if visDict.has(neighbor) || regions[neighbor]["Blocked"]: continue
+						
+				visDict[neighbor] = true
+				nextFrontiers.append(neighbor)
+		
+		tFrontiers = nextFrontiers
+		
+	for region in regions:
+		if !region["Blocked"] && !visDict.has(region["ID"]): 
+			print(visDict)
+			print("!!" + str(region["ID"]))
+			return false
+		
+	return true
+#endregion
+
 #region ** Conquer Gen **
 
-func ConquerGen(bbgOutp:Dictionary, minPercentage:float, maxPercentage:float, minDist:int) -> Array:
+func ConquerGen(bbgOutp:Dictionary, minPercentage:float, maxPercentage:float, minDist:int) -> Array[Dictionary]:
 	
 	var randomizorPos:Vector2i = bbgOutp["Start"].qc.pos
 	var all:Dictionary = bbgOutp["All"]
+	var border:Dictionary = bbgOutp["Border"]
 	var remainings = []
 	for t in all: remainings.append(t)
 	var sizeOfAll:int = all.size()
 	var amount:int = floor(sizeOfAll * VRNG.fRand(minPercentage, maxPercentage, randomizorPos))
 	
 	var allBlockedTs:Dictionary = {}
-	var conquerRegions:Array = [] #out of { Frontier, All }
+	var conquerRegions:Array[Dictionary] = [] #out of { Frontier, All }
 	
 	for i in range(amount):
 		randomizorPos += Vector2i(3, -7)
-		print(">>" + str(remainings.size()))
 		var sTriangle:QCTriangle = remainings[VRNG.iRand(0, remainings.size(), randomizorPos)]
 		remainings.erase(sTriangle)
 		var tFrontier = [sTriangle]
 		var fullRegion = [sTriangle]
+		var tIsAtBorder = border.has(sTriangle)
+		var neighborRegionIDs = {}
 		
 		for f in range(minDist):
 			var nextFrontier = []
 			for triangle in tFrontier:
-				allBlockedTs[triangle] = true	
+				allBlockedTs[triangle] = i	
 				for neighbor in triangle.getNeighbors():
-					if allBlockedTs.has(neighbor): continue
+					if allBlockedTs.has(neighbor): 
+						var tRegID:int = allBlockedTs[neighbor]
+						if tRegID != i: neighborRegionIDs[tRegID] = true
+						continue
 								
-					allBlockedTs[neighbor] = true	
+					allBlockedTs[neighbor] = i
 					nextFrontier.append(neighbor)
 					remainings.erase(neighbor)
+					
+					if border.has(neighbor): tIsAtBorder = true
+					
 			tFrontier = nextFrontier
 			fullRegion += tFrontier
 			
-		conquerRegions.append({"Frontier":tFrontier, "All":fullRegion})
+		conquerRegions.append({"Frontier":tFrontier, "All":fullRegion, "ID":i, "IsAtBorder":tIsAtBorder, "Start":sTriangle, "Blocked":false, "Neighbors":neighborRegionIDs})
 	
 	var b:bool = true
 	while b:
 		b = false
-		print("ITER")
 		for region in conquerRegions:
+			var curRegionID:int = region["ID"]
 			var newFrontier = []
 			for triangle:QCTriangle in region["Frontier"]:
 				for neighbor in triangle.getNeighbors():
-					if allBlockedTs.has(neighbor): continue
+					if allBlockedTs.has(neighbor): 
+						var tRegID:int = allBlockedTs[neighbor]
+						if tRegID != curRegionID: region["Neighbors"][tRegID] = true
+						continue
 					if !all.has(neighbor): continue
-					allBlockedTs[neighbor] = true
+					allBlockedTs[neighbor] = curRegionID
 					#print(neighbor.)
 					newFrontier.append(neighbor)
 					region["All"].append(neighbor)
 					b = true
+					
+					if border.has(neighbor): region["IsAtBorder"] = true
 					
 			region["Frontier"] = newFrontier
 	
