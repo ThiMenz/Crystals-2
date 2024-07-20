@@ -4,25 +4,47 @@ class_name MapGen extends Node3D
 @export var PolygonObject: PackedScene
 @export var DebugMaterial1: Material
 @export var DebugMaterial2: Material
-	
+@export var DebugMaterials:Array[Material]
 var rng = RandomNumberGenerator.new()
 
 func _ready():
+
+	Engine.max_fps = 165
 	
-	VRNG.set_seed(rng.randi())
+	var seed = rng.randi()
+	print(seed)
+	
+	VRNG.set_seed(seed) # seed
 	
 	var timestamp = Time.get_ticks_usec()
 	
-	BBG([get_QC(Vector2i(0,0)).triangle1], [[.0, 1], [.0, .3], [.1, 1]], [10, 18, 3], [false, true, false])
+	var bbgOutp:Dictionary = BBG([get_QC(Vector2i(0,0)).triangle1], [[.0, 1], [.0, .3], [.1, 1]], [10, 18, 3], [false, true, false])
+	print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
+	var subdivs:Array = ConquerGen(bbgOutp, .03, .05, 1)
+	print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
 	
+	var a:int = 0
+	for region in subdivs:
+		a += 1
+		for triangle in region["All"]:
+			var polyObj = PolygonObject.instantiate()
+			add_child(polyObj)
+			polyObj.polygon = PackedVector2Array(triangle.edges)
+			
+			polyObj.material = DebugMaterials[a % len(DebugMaterials)]
+			
+		
+	for triangle in bbgOutp["Border"]:
+		var polyObj = PolygonObject.instantiate()
+		add_child(polyObj)
+		polyObj.polygon = PackedVector2Array(triangle.edges)
+		polyObj.material = DebugMaterial1
+		
 	#BBG([get_QC(Vector2i(0,0)).triangle1], [[0, 1], [0, .4], [0, .1], [.05, .8]], [45, 20, 25, 50], [true, true, true, false]) #[[0.08], [0]], [100, 3]
-	print(Time.get_ticks_usec()-timestamp)
-	print(QCs.size())
+	#print(QCs.size())
 	return
 	
 	instantiateBaseTriangles(90)
-	
-	Engine.max_fps = 165
 	
 	print(rng.seed)
 	
@@ -45,18 +67,83 @@ func get_QC(pPos:Vector2i):
 
 #endregion
 
+#region ** Conquer Gen **
+
+func ConquerGen(bbgOutp:Dictionary, minPercentage:float, maxPercentage:float, minDist:int) -> Array:
+	
+	var randomizorPos:Vector2i = bbgOutp["Start"].qc.pos
+	var all:Dictionary = bbgOutp["All"]
+	var remainings = []
+	for t in all: remainings.append(t)
+	var sizeOfAll:int = all.size()
+	var amount:int = floor(sizeOfAll * VRNG.fRand(minPercentage, maxPercentage, randomizorPos))
+	
+	var allBlockedTs:Dictionary = {}
+	var conquerRegions:Array = [] #out of { Frontier, All }
+	
+	for i in range(amount):
+		randomizorPos += Vector2i(3, -7)
+		print(">>" + str(remainings.size()))
+		var sTriangle:QCTriangle = remainings[VRNG.iRand(0, remainings.size(), randomizorPos)]
+		remainings.erase(sTriangle)
+		var tFrontier = [sTriangle]
+		var fullRegion = [sTriangle]
+		
+		for f in range(minDist):
+			var nextFrontier = []
+			for triangle in tFrontier:
+				allBlockedTs[triangle] = true	
+				for neighbor in triangle.getNeighbors():
+					if allBlockedTs.has(neighbor): continue
+								
+					allBlockedTs[neighbor] = true	
+					nextFrontier.append(neighbor)
+					remainings.erase(neighbor)
+			tFrontier = nextFrontier
+			fullRegion += tFrontier
+			
+		conquerRegions.append({"Frontier":tFrontier, "All":fullRegion})
+	
+	var b:bool = true
+	while b:
+		b = false
+		print("ITER")
+		for region in conquerRegions:
+			var newFrontier = []
+			for triangle:QCTriangle in region["Frontier"]:
+				for neighbor in triangle.getNeighbors():
+					if allBlockedTs.has(neighbor): continue
+					if !all.has(neighbor): continue
+					allBlockedTs[neighbor] = true
+					#print(neighbor.)
+					newFrontier.append(neighbor)
+					region["All"].append(neighbor)
+					b = true
+					
+			region["Frontier"] = newFrontier
+	
+	print("% / %".format([amount, sizeOfAll], "%"))
+	#
+	return conquerRegions
+
+#endregion
+
 #region ** Biom Border Gen **
 
 func BBGDegration(pVal:int, args:Array) -> float:
 	if pVal == 0: return args[1]
 	return 2. ** (-args[0]*pVal)
 
-func BBG(pStartTriangle:Array, pChanceDegrationFunc:Array, pMaxDepth:Array, pLineExpansion:Array):
+func BBG(pStartTriangle:Array, pChanceDegrationFunc:Array, pMaxDepth:Array, pLineExpansion:Array) -> Dictionary:
 	
 	var ccount:int = 1
 	
 	var visitedTriangles = {}
 	var frontierTriangles = pStartTriangle
+	var qc_max_x:int = -1_000_000_000
+	var qc_min_x:int =  1_000_000_000
+	var qc_max_y:int = -1_000_000_000
+	var qc_min_y:int =  1_000_000_000
 	
 	for t in frontierTriangles:
 		visitedTriangles[t] = true
@@ -75,7 +162,7 @@ func BBG(pStartTriangle:Array, pChanceDegrationFunc:Array, pMaxDepth:Array, pLin
 			for tTriangle in frontierTriangles:
 				var aVec:Vector2i = Vector2i(1,1) if tTriangle.sideO else Vector2i(0,0)
 				var firstNeighborSelected:bool = false
-				var tTrianglePos = tTriangle.qc.pos 
+				var tTrianglePos:Vector2i = tTriangle.qc.pos 
 				
 				if VRNG.rand(tTrianglePos * 3 + aVec) < chance:
 					var tNeighbors:Array = tTriangle.getNeighbors()
@@ -99,6 +186,19 @@ func BBG(pStartTriangle:Array, pChanceDegrationFunc:Array, pMaxDepth:Array, pLin
 						visitedTriangles[tneighbor] = true
 						ccount += 1
 						firstNeighborSelected = true
+						
+						var tPos:Vector2i = tneighbor.qc.pos	
+						if tPos.x <= qc_min_x: qc_min_x = tPos.x - 1
+						if tPos.y <= qc_min_y: qc_min_y = tPos.y - 1
+						if tPos.x >= qc_max_x: qc_max_x = tPos.x + 1
+						if tPos.y >= qc_max_y: qc_max_y = tPos.y + 1
+				
+											
+						#var polyObj = PolygonObject.instantiate()
+						#add_child(polyObj)
+						#polyObj.polygon = PackedVector2Array(tneighbor.edges)
+						#polyObj.material = DebugMaterial1 if t.debugDiagonal else DebugMaterial2
+						
 			frontierTriangles = newFrontierTriangles
 		
 								
@@ -108,6 +208,126 @@ func BBG(pStartTriangle:Array, pChanceDegrationFunc:Array, pMaxDepth:Array, pLin
 		temporaryDisabledTriangles = []
 		
 		frontierTriangles = lastIterTriangles
+	
+	var quadLimitingQCs = [
+		get_QC(Vector2i(qc_min_x, qc_min_y)), get_QC(Vector2i(qc_max_x, qc_min_y)),
+		get_QC(Vector2i(qc_min_x, qc_max_y)), get_QC(Vector2i(qc_max_x, qc_max_y))]
+	var borderDijkstraVisDict:Dictionary = {}
+	var borderDijkstraFrontiers:Array = [
+		quadLimitingQCs[0].triangle1, quadLimitingQCs[0].triangle2,
+		quadLimitingQCs[1].triangle1, quadLimitingQCs[1].triangle2,
+		quadLimitingQCs[2].triangle1, quadLimitingQCs[2].triangle2,
+		quadLimitingQCs[3].triangle1, quadLimitingQCs[3].triangle2]
+	var borderTriangles:Dictionary = {}
+	var innerTriangles:Dictionary = {}
+	
+	print("X from % to %".format([qc_min_x, qc_max_x], "%"))
+	print("Y from % to %".format([qc_min_y, qc_max_y], "%"))
+	
+	while len(borderDijkstraFrontiers) != 0:	
+		var nextFrontiers = []
+		for triangle in borderDijkstraFrontiers:
+			borderDijkstraVisDict[triangle] = true
+			var tNeighbors:Array = triangle.getNeighbors()			
+			for neighbor in tNeighbors:
+				
+				if borderDijkstraVisDict.has(neighbor): continue
+				
+				if !Vec2iInBox(neighbor.qc.pos, qc_min_x, qc_max_x, qc_min_y, qc_max_y): continue
+							
+				borderDijkstraVisDict[neighbor] = true
+				if visitedTriangles.has(neighbor): 
+					borderTriangles[neighbor] = true
+					continue
+					
+				nextFrontiers.append(neighbor)
+		
+		borderDijkstraFrontiers = nextFrontiers
+				
+	borderDijkstraFrontiers = []
+	var bbgFQCT:QCTriangle = borderTriangles.keys()[0]
+	for n in bbgFQCT.getNeighbors():
+		if borderDijkstraVisDict.has(n): continue
+		borderDijkstraFrontiers.append(n)
+		
+	var a = 0
+		
+	while len(borderDijkstraFrontiers) != 0:	
+		var nextFrontiers = []
+		for triangle in borderDijkstraFrontiers:
+			innerTriangles[triangle] = true
+			borderDijkstraVisDict[triangle] = true
+			var tNeighbors:Array = triangle.getNeighbors()			
+			for neighbor in tNeighbors:
+				
+				if borderDijkstraVisDict.has(neighbor): continue
+				
+				borderDijkstraVisDict[neighbor] = true
+				nextFrontiers.append(neighbor)
+		
+		borderDijkstraFrontiers = nextFrontiers
+		
+	var allTriangles:Dictionary = {}
+	for t in borderTriangles: allTriangles[t] = true
+	for t in innerTriangles: allTriangles[t] = true
+		
+	return {"Start":bbgFQCT, "Border":borderTriangles, "Inner":innerTriangles, "All":allTriangles}
+	
+	#print(">>" + str(a))
+	#var xrange = range(qc_min_x, qc_max_x + 1)
+	#var yrange = range(qc_min_y, qc_max_y + 1)
+	#var xrangeinv = range(qc_max_x, qc_min_x - 1, -1)
+	#var yrangeinv = range(qc_max_y, qc_min_y - 1, -1)
+	#var borderTriangles:Dictionary = {}
+	#
+	#for x in xrange:
+	#	var prevQCVisited:bool = false
+	#	for y in yrange: prevQCVisited = VVV(borderTriangles, visitedTriangles, prevQCVisited, x, y, true, false)
+	#	prevQCVisited = false
+	#	for y in yrangeinv: prevQCVisited = VVV(borderTriangles, visitedTriangles, prevQCVisited, x, y, true, true)
+	#for y in yrange:
+	#	var prevQCVisited:bool = false
+	#	for x in xrange: prevQCVisited = VVV(borderTriangles, visitedTriangles, prevQCVisited, x, y, false, false)
+	#	prevQCVisited = false
+	#	for x in xrangeinv: prevQCVisited = VVV(borderTriangles, visitedTriangles, prevQCVisited, x, y, false, true)
+	#
+	#for triangle in borderTriangles:
+	#	var polyObj = PolygonObject.instantiate()
+	#	add_child(polyObj)
+	#	polyObj.polygon = PackedVector2Array(triangle.edges)
+	#	polyObj.material = DebugMaterial1
+	#for triangle in innerTriangles:
+	#	var polyObj = PolygonObject.instantiate()
+	#	add_child(polyObj)
+	#	polyObj.polygon = PackedVector2Array(triangle.edges)
+	#	polyObj.material = DebugMaterial2
+		
+func Vec2iInBox(vec:Vector2i, minX:int, maxX:int, minY:int, maxY:int):
+	return vec.x >= minX && vec.x <= maxX && vec.y >= minY && vec.y <= maxY
+	
+	
+func VVV(borderTriangleRef:Dictionary, visitedTriangles:Dictionary, prevQCVisited:bool, x:int, y:int, isOImportant:bool, sideState:bool) -> bool:
+	var tQC = get_QC(Vector2i(x,y))
+	#var relevantTriangle:QCTriangle = tQC.get_verticalTriangleNeighbor(sideState) if isOImportant else tQC.get_horizontalTriangleNeighbor(sideState)
+	var b1:bool = visitedTriangles.has(tQC.triangle1) #&& relevantTriangle == tQC.triangle1
+	var b2:bool = visitedTriangles.has(tQC.triangle2) #&& relevantTriangle == tQC.triangle2
+	if b1 || b2:
+		
+		if !prevQCVisited:
+			if b1: borderTriangleRef[tQC.triangle1] = true
+			if b2: borderTriangleRef[tQC.triangle2] = true
+			
+			var relevantTriangle:QCTriangle = tQC.get_triangleWithO(sideState) if isOImportant else tQC.get_triangleWithL(sideState)
+			
+			#if !(b1 && relevantTriangle == tQC.triangle1) && !(b2 && relevantTriangle == tQC.triangle2): 
+			#	return false
+			
+			#print(str(relevantTriangle.qc.pos) + "|" + str(tQC.pos))
+			
+		return b1 && b2
+		
+	return false
+
 	
 func BBGRecursive(pDepth:int, pMaxDepth:int, pChanceAtDepth:Array):
 	
