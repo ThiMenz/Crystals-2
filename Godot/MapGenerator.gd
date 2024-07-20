@@ -18,11 +18,11 @@ func _ready():
 	
 	var timestamp = Time.get_ticks_usec()
 	
-	var bbgOutp:Dictionary = BBG([get_QC(Vector2i(0,0)).triangle1], [[.0, 1], [.0, .3], [.1, 1]], [10, 18, 3], [false, true, false])
+	var bbgOutp:Dictionary = BBG([get_QC(Vector2i(0,0)).triangle1], [[.0, 1], [.0, .3], [.1, 1]], [10, 18, 3], [false, true, false], 600)
 	print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
 	var subdivs:Array[Dictionary] = ConquerGen(bbgOutp, .03, .05, 1)
 	print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
-	RegionBlocking(subdivs, .6, 1, .2, 2)
+	RegionBlocking(subdivs, .6, 1, .0, 2)
 	print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
 	
 	var a:int = 0
@@ -194,7 +194,7 @@ func BBGDegration(pVal:int, args:Array) -> float:
 	if pVal == 0: return args[1]
 	return 2. ** (-args[0]*pVal)
 
-func BBG(pStartTriangle:Array, pChanceDegrationFunc:Array, pMaxDepth:Array, pLineExpansion:Array) -> Dictionary:
+func BBG(pStartTriangle:Array, pChanceDegrationFunc:Array, pMaxDepth:Array, pLineExpansion:Array, pMinSize:int) -> Dictionary:
 	
 	var ccount:int = 1
 	
@@ -268,6 +268,27 @@ func BBG(pStartTriangle:Array, pChanceDegrationFunc:Array, pMaxDepth:Array, pLin
 		temporaryDisabledTriangles = []
 		
 		frontierTriangles = lastIterTriangles
+	
+	while len(visitedTriangles) < pMinSize:
+		
+		if len(frontierTriangles) == 0: break
+
+		var newFrontierTriangles = []	
+		for tTriangle in frontierTriangles:
+			for neighbor in tTriangle.getNeighbors():
+				if visitedTriangles.has(neighbor): continue
+				
+				newFrontierTriangles.append(neighbor)
+				visitedTriangles[neighbor] = true
+					
+				var tPos:Vector2i = neighbor.qc.pos	
+				if tPos.x <= qc_min_x: qc_min_x = tPos.x - 1
+				if tPos.y <= qc_min_y: qc_min_y = tPos.y - 1
+				if tPos.x >= qc_max_x: qc_max_x = tPos.x + 1
+				if tPos.y >= qc_max_y: qc_max_y = tPos.y + 1
+					
+			frontierTriangles = newFrontierTriangles
+		
 	
 	var quadLimitingQCs = [
 		get_QC(Vector2i(qc_min_x, qc_min_y)), get_QC(Vector2i(qc_max_x, qc_min_y)),
