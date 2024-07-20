@@ -5,6 +5,8 @@ class_name MapGen extends Node3D
 @export var DebugMaterial1: Material
 @export var DebugMaterial2: Material
 @export var DebugMaterials:Array[Material]
+@export var TestBiomInfo:BiomInfo
+
 var rng = RandomNumberGenerator.new()
 
 func _ready():
@@ -14,42 +16,51 @@ func _ready():
 	var seed = rng.randi()
 	print(seed)
 	
-	VRNG.set_seed(687404619) # seed
+	VRNG.set_seed(seed) # seed
 	
-	var timestamp = Time.get_ticks_usec()
-	
-	var bbgOutp:Dictionary = BBG([get_QC(Vector2i(0,0)).triangle1], [[.0, 1], [.0, .3], [.1, 1]], [10, 18, 3], [false, true, false], 600)
-	print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
-	var subdivs:Array[Dictionary] = ConquerGen(bbgOutp, .03, .05, 1)
-	print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
-	var freeBorderRegions:Array = RegionBlocking(subdivs, bbgOutp["Entry"], .6, 1, .0, 2)
-	print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
-	var expansions:Array[QCTriangle] = GetBiomTriangleExpansionStartPoints(subdivs, freeBorderRegions, bbgOutp["All"])
-	print(freeBorderRegions)
-	
-	var a:int = 0
-	for region in subdivs:
-		a += 1
-		var fbr:bool = freeBorderRegions.has(region["ID"])
-		for triangle in region["All"]:
-			var polyObj = PolygonObject.instantiate()
-			add_child(polyObj)
-			polyObj.polygon = PackedVector2Array(triangle.edges)
-			
-			#0 if region["Blocked"] else 1
-			#if expansions.has(triangle): polyObj.material = DebugMaterials[6] 
-			if fbr: polyObj.material = DebugMaterials[5]
-			elif region["Blocked"]: polyObj.material = DebugMaterials[14]
-			#elif region["IsAtBorder"]: polyObj.material = DebugMaterials[10]
-			elif bbgOutp["Entry"] == triangle: polyObj.material = DebugMaterials[4]
-			else: polyObj.material = DebugMaterials[3] #DebugMaterials[a % len(DebugMaterials)]
-			
-		
-	for expansion in expansions:
+	var v = GenerateBasePropertiesOfBiom(get_QC(Vector2i(0,0)).triangle1, TestBiomInfo)
+	for triangle in v["All"]:
 		var polyObj = PolygonObject.instantiate()
 		add_child(polyObj)
-		polyObj.polygon = PackedVector2Array(expansion.edges)
+		polyObj.polygon = PackedVector2Array(triangle.edges)
 		polyObj.material = DebugMaterials[6] 
+	
+	#
+	#
+	#var timestamp = Time.get_ticks_usec()
+	#
+	#var bbgOutp:Dictionary = BBG([get_QC(Vector2i(0,0)).triangle1], [[.0, 1], [.0, .3], [.1, 1]], [10, 18, 3], [false, true, false], 600)
+	#print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
+	#var subdivs:Array[Dictionary] = ConquerGen(bbgOutp, .03, .05, 1)
+	#print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
+	#var freeBorderRegions:Array = RegionBlocking(subdivs, bbgOutp["Entry"], .6, 1, .0, 2)
+	#print(str((Time.get_ticks_usec()-timestamp)/1000.) + "ms")
+	#var expansions:Array[QCTriangle] = GetBiomTriangleExpansionStartPoints(subdivs, freeBorderRegions, bbgOutp["All"])
+	#print(freeBorderRegions)
+	#
+	##var a:int = 0
+	#for region in subdivs:
+	#	a += 1
+	#	var fbr:bool = freeBorderRegions.has(region["ID"])
+	#	for triangle in region["All"]:
+	#		var polyObj = PolygonObject.instantiate()
+	#		add_child(polyObj)
+	#		polyObj.polygon = PackedVector2Array(triangle.edges)
+	#		
+	#		#0 if region["Blocked"] else 1
+	#		#if expansions.has(triangle): polyObj.material = DebugMaterials[6] 
+	#		if fbr: polyObj.material = DebugMaterials[5]
+	#		elif region["Blocked"]: polyObj.material = DebugMaterials[14]
+	#		#elif region["IsAtBorder"]: polyObj.material = DebugMaterials[10]
+	#		elif bbgOutp["Entry"] == triangle: polyObj.material = DebugMaterials[4]
+	#		else: polyObj.material = DebugMaterials[3] #DebugMaterials[a % len(DebugMaterials)]
+	#		
+	#	
+	#for expansion in expansions:
+	#	var polyObj = PolygonObject.instantiate()
+	#	add_child(polyObj)
+	#	polyObj.polygon = PackedVector2Array(expansion.edges)
+	#	polyObj.material = DebugMaterials[6] 
 		
 	#BBG([get_QC(Vector2i(0,0)).triangle1], [[0, 1], [0, .4], [0, .1], [.05, .8]], [45, 20, 25, 50], [true, true, true, false]) #[[0.08], [0]], [100, 3]
 	#print(QCs.size())
@@ -63,10 +74,27 @@ func _ready():
 
 #region ** MAP GENERATION **
 
-#region ** General Biome Management **
+#region ** General **
 
 var allBiomBorders:Dictionary = {}
 var nextBiomID:int = 0
+
+func GenerateBasePropertiesOfBiom(initialTriangle:QCTriangle, biomInfo:BiomInfo):
+	#[[.0, 1], [.0, .3], [.1, 1]], [10, 18, 3], [false, true, false], 600
+	var timestamp = Time.get_ticks_usec()
+	var splittedBBGInfo:Array = biomInfo.SplitIndividualGenerationStages()
+	var bbgOutp:Dictionary = BBG([initialTriangle], splittedBBGInfo[0], splittedBBGInfo[1], splittedBBGInfo[2], biomInfo.MinBiomSize)
+	print("%ms".format([(Time.get_ticks_usec()-timestamp)/1000.], "%"))
+	var subdivs:Array[Dictionary] = ConquerGen(bbgOutp, biomInfo.SubdivMinPercentage, biomInfo.SubdivMaxPercentage, biomInfo.SubdivMinDistance)
+	print("%ms".format([(Time.get_ticks_usec()-timestamp)/1000.], "%"))
+	var freeBorderRegions:Array = RegionBlocking(subdivs, bbgOutp["Entry"], biomInfo.BlockingChance, biomInfo.BlockingBorderMultiplier, biomInfo.BlockingBlockedGroupMultiplier, biomInfo.MinFreeNewBorders)
+	print("%ms".format([(Time.get_ticks_usec()-timestamp)/1000.], "%"))
+	var expansions:Array[QCTriangle] = GetBiomTriangleExpansionStartPoints(subdivs, freeBorderRegions, bbgOutp["All"])
+	print("BiomBasePropertyGen finished in %ms".format([(Time.get_ticks_usec()-timestamp)/1000.], "%"))
+	return bbgOutp
+	
+func LoadBiom():
+	pass
 
 #endregion
 
@@ -99,7 +127,7 @@ func GetPossibleExpansion(region:Dictionary, allBiomTriangles:Dictionary) -> QCT
 	var regionAll:Array = region["All"]
 	for triangle:QCTriangle in regionAll:
 		for neighbor in triangle.getNeighbors():
-			if regionAll.has(neighbor) || allBiomTriangles.has(neighbor) || allBiomBorders.has(neighbor): continue
+			if allBiomTriangles.has(neighbor) || allBiomBorders.has(neighbor) || regionAll.has(neighbor): continue
 			return neighbor
 	return null
 		
@@ -179,6 +207,9 @@ func ConquerGen(bbgOutp:Dictionary, minPercentage:float, maxPercentage:float, mi
 	var conquerRegions:Array[Dictionary] = [] #out of { Frontier, All }
 	
 	for i in range(amount):
+		
+		if len(remainings) == 0: break
+		
 		randomizorPos += Vector2i(3, -7)
 		var sTriangle:QCTriangle = remainings[VRNG.iRand(0, remainings.size(), randomizorPos)]
 		remainings.erase(sTriangle)
@@ -233,7 +264,7 @@ func ConquerGen(bbgOutp:Dictionary, minPercentage:float, maxPercentage:float, mi
 					
 			region["Frontier"] = newFrontier
 	
-	print("% / %".format([amount, sizeOfAll], "%"))
+	#print("% / %".format([amount, sizeOfAll], "%"))
 	
 	return conquerRegions
 
@@ -357,8 +388,8 @@ func BBG(pStartTriangle:Array, pChanceDegrationFunc:Array, pMaxDepth:Array, pLin
 	var borderTriangles:Dictionary = {}
 	var innerTriangles:Dictionary = {}
 	
-	print("X from % to %".format([qc_min_x, qc_max_x], "%"))
-	print("Y from % to %".format([qc_min_y, qc_max_y], "%"))
+	#print("X from % to %".format([qc_min_x, qc_max_x], "%"))
+	#print("Y from % to %".format([qc_min_y, qc_max_y], "%"))
 	
 	while len(borderDijkstraFrontiers) != 0:	
 		var nextFrontiers = []
@@ -411,7 +442,7 @@ func BBG(pStartTriangle:Array, pChanceDegrationFunc:Array, pMaxDepth:Array, pLin
 	for t in innerTriangles: allTriangles[t] = true
 	nextBiomID += 1
 		
-	return {"Start":bbgFQCT, "Border":borderTriangles, "Inner":innerTriangles, "All":allTriangles, "Entry":pStartTriangle[0], "Null":false}
+	return {"Start":bbgFQCT, "Border":borderTriangles, "Inner":innerTriangles, "All":allTriangles, "Entry":pStartTriangle[0], "Null":len(visitedTriangles) < pMinSize}
 		
 	#return {"Null":true}
 	
