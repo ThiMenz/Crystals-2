@@ -10,20 +10,23 @@ config_version=5
 
 [application]
 
-config/name="Crystals 2"
-run/main_scene="res://Scenes/TDPerspectiveGameScene.tscn"
-config/features=PackedStringArray("4.2", "C#", "Forward Plus")
-boot_splash/show_image=false
-config/icon="res://Visuals/icon.svg"
+config/name="HTerrainTest"
+run/main_scene="res://Scenes/Scenes/testScene.tscn"
+config/features=PackedStringArray("4.2", "Forward Plus")
+config/icon="res://Sprites/icon.svg"
+
+[display]
+
+window/vsync/vsync_mode=0
 
 [dotnet]
 
-project/assembly_name="Crystals 2"
+project/assembly_name="HTerrainTest"
+
+[editor]
+
+movie_writer/disable_vsync=true
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/terrain_3d/plugin.cfg")
-
-[rendering]
-
-occlusion_culling/use_occlusion_culling=true
+enabled=PackedStringArray("res://addons/zylann.hterrain/plugin.cfg")

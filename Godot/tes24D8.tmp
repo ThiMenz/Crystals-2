@@ -1,0 +1,42 @@
+[gd_scene load_steps=6 format=3 uid="uid://cwfafafmeedcv"]
+
+[ext_resource type="Script" path="res://TerrainGenerator.gd" id="1_dds2d"]
+[ext_resource type="PackedScene" uid="uid://xlkrob0qgtfv" path="res://chunkSpwn.tscn" id="2_14r7u"]
+[ext_resource type="Resource" path="res://Terrain/data.hterrain" id="2_jcegh"]
+[ext_resource type="Script" path="res://SimulationManager.gd" id="3_f3buv"]
+[ext_resource type="Script" path="res://CamScript.gd" id="7_g1ev1"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="HTerrain" parent="." instance=ExtResource("2_14r7u")]
+visible = false
+_terrain_data = ExtResource("2_jcegh")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 50, 0)
+script = ExtResource("7_g1ev1")
+
+[node name="FPSCounter" type="RichTextLabel" parent="Camera3D"]
+offset_right = 443.0
+offset_bottom = 40.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.3467, 62.3233, 84.545)
+visible = false
+light_energy = 3.275
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26.0845, 16.2905, 33.5588)
+light_energy = 5.338
+omni_range = 4096.0
+omni_attenuation = 0.594604
+
+[node name="SimulationManager" type="Node" parent="." node_paths=PackedStringArray("MainCamera", "TerrainGenerator")]
+script = ExtResource("3_f3buv")
+MainCamera = NodePath("../Camera3D")
+TerrainGenerator = NodePath("../TerrainGen")
+
+[node name="TerrainGen" type="Node" parent="." node_paths=PackedStringArray("terrainObject")]
+script = ExtResource("1_dds2d")
+terrainObject = NodePath("../HTerrain")
+terrainSpwn = ExtResource("2_14r7u")

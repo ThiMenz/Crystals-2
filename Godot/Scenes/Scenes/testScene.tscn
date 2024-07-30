@@ -1,0 +1,101 @@
+[gd_scene load_steps=15 format=3 uid="uid://cwfafafmeedcv"]
+
+[ext_resource type="Script" path="res://MainManager.gd" id="1_rw1qm"]
+[ext_resource type="Script" path="res://SceneManager.gd" id="2_jr7ul"]
+[ext_resource type="Script" path="res://CamScript.gd" id="3_3m0nw"]
+[ext_resource type="Script" path="res://SimulationManager.gd" id="4_01jab"]
+[ext_resource type="Script" path="res://TerrainGenerator.gd" id="5_lno2w"]
+[ext_resource type="PackedScene" uid="uid://xlkrob0qgtfv" path="res://Scenes/Objects/chunkSpwn.tscn" id="6_wk21g"]
+[ext_resource type="Script" path="res://BiomGenStageInfo.gd" id="7_tfw24"]
+[ext_resource type="Script" path="res://BiomInfo.gd" id="8_0gmf8"]
+[ext_resource type="Script" path="res://MultiplayerManager.gd" id="9_bl8yk"]
+[ext_resource type="Script" path="res://GameManager.gd" id="10_wdld2"]
+
+[sub_resource type="Resource" id="Resource_ft777"]
+script = ExtResource("7_tfw24")
+MaxDepth = 10
+IsLineGen = false
+ChanceDegrationArgs = [0.0, 1.0]
+
+[sub_resource type="Resource" id="Resource_g3dnb"]
+script = ExtResource("7_tfw24")
+MaxDepth = 28
+IsLineGen = true
+ChanceDegrationArgs = [0.0, 0.3]
+
+[sub_resource type="Resource" id="Resource_nyfcv"]
+script = ExtResource("7_tfw24")
+MaxDepth = 3
+IsLineGen = false
+ChanceDegrationArgs = [0.1, 1.0]
+
+[sub_resource type="Resource" id="Resource_gwobm"]
+script = ExtResource("8_0gmf8")
+MinBiomSize = 600
+GenerationStages = Array[ExtResource("7_tfw24")]([SubResource("Resource_ft777"), SubResource("Resource_g3dnb"), SubResource("Resource_nyfcv")])
+SubdivMinPercentage = 0.06
+SubdivMaxPercentage = 0.1
+SubdivMinDistance = 1
+BlockingChance = 0.6
+BlockingBorderMultiplier = 0.0
+BlockingBlockedGroupMultiplier = 2.0
+MinFreeNewBorders = 2
+
+[node name="Main" type="Node3D" node_paths=PackedStringArray("MainSceneManager")]
+script = ExtResource("1_rw1qm")
+StartingScene = "Test"
+MainSceneManager = NodePath("MainScenes")
+
+[node name="MainScenes" type="Node3D" parent="."]
+script = ExtResource("2_jr7ul")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 50, 0)
+script = ExtResource("3_3m0nw")
+
+[node name="FPSCounter" type="RichTextLabel" parent="Camera3D"]
+offset_right = 443.0
+offset_bottom = 40.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.3467, 62.3233, 84.545)
+visible = false
+light_energy = 3.275
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.6983, 22.4278, -26.5438)
+light_energy = 5.338
+omni_range = 4096.0
+omni_attenuation = 0.594604
+
+[node name="SimulationManager" type="Node" parent="." node_paths=PackedStringArray("MainCamera", "TerrainGenerator")]
+script = ExtResource("4_01jab")
+MainCamera = NodePath("../Camera3D")
+TerrainGenerator = NodePath("../TerrainGen")
+
+[node name="TerrainGen" type="Node" parent="."]
+script = ExtResource("5_lno2w")
+terrainSpwn = ExtResource("6_wk21g")
+TestBiomInfo = SubResource("Resource_gwobm")
+randomizationStrength = Vector2(0.25, 0.25)
+
+[node name="MultiplayerManager" type="Node" parent="."]
+script = ExtResource("9_bl8yk")
+
+[node name="ServerBtn" type="Button" parent="."]
+offset_left = 23.0
+offset_top = 16.0
+offset_right = 167.0
+offset_bottom = 43.0
+
+[node name="ClientBtn" type="Button" parent="."]
+offset_left = 23.0
+offset_top = 52.0
+offset_right = 167.0
+offset_bottom = 79.0
+
+[node name="GameManager" type="Node" parent="."]
+script = ExtResource("10_wdld2")
+
+[connection signal="button_down" from="ServerBtn" to="MultiplayerManager" method="_on_server_btn_button_down"]
+[connection signal="button_down" from="ClientBtn" to="MultiplayerManager" method="_on_client_btn_button_down"]
