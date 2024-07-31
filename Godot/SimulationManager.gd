@@ -25,11 +25,7 @@ var thread := Thread.new()
 
 func _ready():
 	
-	SaveSystem._load()
-	
 	Engine.max_fps = 250
-	
-	var arguments := GetCmdLineArgDict()
 	
 	var timestamp:float = Time.get_ticks_usec()
 
@@ -37,16 +33,6 @@ func _ready():
 	ChunkManager.InitializeMainLoopChunks() # Can take a good while (~1s omh)
 	
 	print((Time.get_ticks_usec() - timestamp) / 1000.)
-	
-func GetCmdLineArgDict() -> Dictionary:
-	var arguments = {}
-	for argument in OS.get_cmdline_args():
-		if argument.find("=") > -1:
-			var key_value = argument.split("=")
-			arguments[key_value[0].lstrip("--")] = key_value[1]
-		else:
-			arguments[argument.lstrip("--")] = ""
-	return arguments
 	
 func _test_thread(pTime, pRngSeed):
 	for i in 1: 

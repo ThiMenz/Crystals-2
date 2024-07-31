@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://7q1jf8jl1add"]
+
+[ext_resource type="Script" path="res://CamScript.gd" id="1_qae8u"]
+
+[node name="TopDownScene" type="Node3D"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 50, 0)
+script = ExtResource("1_qae8u")
+
+[node name="FPSCounter" type="RichTextLabel" parent="Camera3D"]
+offset_right = 443.0
+offset_bottom = 40.0
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.6983, 22.4278, -26.5438)
+light_energy = 5.338
+omni_range = 4096.0
+omni_attenuation = 0.594604

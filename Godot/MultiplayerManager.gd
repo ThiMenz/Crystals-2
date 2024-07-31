@@ -35,7 +35,7 @@ func connection_failed(): ## Only from Clients
 	print("Connection Failed")
 
 func createServer(pPort:int):
-	
+
 	port = pPort
 	
 	var error = peer.create_server(port, 4)

@@ -1,0 +1,51 @@
+[gd_scene load_steps=6 format=3 uid="uid://2bvlgwxs5ohd"]
+
+[ext_resource type="Script" path="res://WorldSelectionElement.gd" id="1_rgpuw"]
+[ext_resource type="FontFile" uid="uid://bjyn587irpv64" path="res://Fonts/Handlee-Regular.ttf" id="2_cnwis"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_htfcb"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_obsxh"]
+bg_color = Color(7.21961e-08, 0.118269, 0.163176, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="FontVariation" id="FontVariation_8gmuq"]
+base_font = ExtResource("2_cnwis")
+
+[node name="WorldSelectionElement" type="Panel"]
+custom_minimum_size = Vector2(750, 50)
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_htfcb")
+script = ExtResource("1_rgpuw")
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 6.235
+offset_bottom = 6.235
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_obsxh")
+
+[node name="Label" type="Label" parent="Button"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -25.0
+offset_right = 335.0
+offset_bottom = 25.0
+grow_vertical = 2
+theme_override_fonts/font = SubResource("FontVariation_8gmuq")
+theme_override_font_sizes/font_size = 31
+text = "World Name Placeholder"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="button_down" from="Button" to="." method="_on_button_down"]

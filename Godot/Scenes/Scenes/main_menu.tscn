@@ -1,0 +1,128 @@
+[gd_scene load_steps=11 format=3 uid="uid://c200qprxbvg4w"]
+
+[ext_resource type="Script" path="res://MainMenu.gd" id="1_3bfnb"]
+[ext_resource type="FontFile" uid="uid://bjyn587irpv64" path="res://Fonts/Handlee-Regular.ttf" id="2_aabvc"]
+[ext_resource type="FontFile" uid="uid://cc30qdd0p2cgs" path="res://Fonts/Gluten-Bold.ttf" id="3_vr8te"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a3e50"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7kadc"]
+
+[sub_resource type="Theme" id="Theme_qn1en"]
+default_font = ExtResource("2_aabvc")
+
+[sub_resource type="FontVariation" id="FontVariation_j74sy"]
+base_font = ExtResource("2_aabvc")
+variation_embolden = 0.72
+variation_transform = Transform2D(1, 0, -0.105, 1, 0, 0)
+spacing_glyph = 1
+spacing_top = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1ow3x"]
+bg_color = Color(0.257028, 0.505135, 0.724747, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.722405, 0.794939, 1, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0.721569, 0.796078, 1, 0)
+shadow_size = 3
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tiqrj"]
+bg_color = Color(0.189394, 0.405345, 0.594277, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.722405, 0.794939, 1, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0.721569, 0.796078, 1, 0.482353)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="FontVariation" id="FontVariation_htxu6"]
+base_font = ExtResource("3_vr8te")
+variation_transform = Transform2D(0.87, 0, -0.08, 1, 0, 0)
+spacing_glyph = -5
+
+[node name="Main Menu" type="Panel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_a3e50")
+script = ExtResource("1_3bfnb")
+
+[node name="BtnPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 218.0
+offset_right = 576.0
+offset_bottom = 450.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_7kadc")
+
+[node name="PlayBtn" type="Button" parent="BtnPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -92.5
+offset_top = -57.275
+offset_right = 92.5
+offset_bottom = -5.27493
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 4
+theme = SubResource("Theme_qn1en")
+theme_override_fonts/font = SubResource("FontVariation_j74sy")
+theme_override_font_sizes/font_size = 31
+theme_override_styles/normal = SubResource("StyleBoxFlat_1ow3x")
+theme_override_styles/hover = SubResource("StyleBoxFlat_tiqrj")
+text = "Play"
+
+[node name="QuitBtn" type="Button" parent="BtnPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -92.5
+offset_top = 3.56
+offset_right = 92.5
+offset_bottom = 55.5602
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_qn1en")
+theme_override_fonts/font = SubResource("FontVariation_j74sy")
+theme_override_font_sizes/font_size = 31
+theme_override_styles/normal = SubResource("StyleBoxFlat_1ow3x")
+theme_override_styles/hover = SubResource("StyleBoxFlat_tiqrj")
+text = "Quit"
+
+[node name="Headline" type="Label" parent="."]
+layout_mode = 0
+offset_top = 16.0
+offset_right = 799.0
+offset_bottom = 87.0
+theme_override_colors/font_color = Color(0.641753, 0.884334, 0.996935, 1)
+theme_override_fonts/font = SubResource("FontVariation_htxu6")
+theme_override_font_sizes/font_size = 56
+text = "Crystals"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="button_down" from="BtnPanel/PlayBtn" to="." method="_on_play_btn_button_down"]
+[connection signal="button_down" from="BtnPanel/QuitBtn" to="." method="_on_quit_btn_button_down"]
