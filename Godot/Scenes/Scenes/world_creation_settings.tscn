@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://cas0tm4g1wn4j"]
 
-[ext_resource type="Script" path="res://WorldCreationSettings.gd" id="1_3xyrf"]
+[ext_resource type="Script" path="res://Scripts/UI Panel/WorldCreationSettings.gd" id="1_3xyrf"]
 [ext_resource type="FontFile" uid="uid://cc30qdd0p2cgs" path="res://Fonts/Gluten-Bold.ttf" id="2_y3rrf"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h67ig"]

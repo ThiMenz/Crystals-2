@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://7q1jf8jl1add"]
 
-[ext_resource type="Script" path="res://CamScript.gd" id="1_qae8u"]
+[ext_resource type="Script" path="res://Scripts/InGame/CamScript.gd" id="1_qae8u"]
 
 [node name="TopDownScene" type="Node3D"]
 

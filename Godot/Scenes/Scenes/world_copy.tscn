@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://drcrqkrsle6j0"]
 
-[ext_resource type="Script" path="res://CopyWorld.gd" id="1_c7a0m"]
+[ext_resource type="Script" path="res://Scripts/UI Panel/CopyWorld.gd" id="1_c7a0m"]
 [ext_resource type="PackedScene" uid="uid://2bvlgwxs5ohd" path="res://Scenes/Objects/world_selection_element.tscn" id="2_1bofn"]
 [ext_resource type="FontFile" uid="uid://cc30qdd0p2cgs" path="res://Fonts/Gluten-Bold.ttf" id="3_hay5r"]
 
@@ -14,12 +14,13 @@ base_font = ExtResource("3_hay5r")
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_y5d7p"]
 
-[node name="WorldCopy" type="Panel"]
+[node name="WorldCopy" type="Panel" node_paths=PackedStringArray("WorldVBoxContainer")]
 offset_right = 800.0
 offset_bottom = 450.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_h67ig")
 script = ExtResource("1_c7a0m")
 WorldSelectionElement = ExtResource("2_1bofn")
+WorldVBoxContainer = NodePath("WorldScrollContainer/WorldVBoxContainer")
 
 [node name="Label" type="Label" parent="."]
 layout_mode = 1

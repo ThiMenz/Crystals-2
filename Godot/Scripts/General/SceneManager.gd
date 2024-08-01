@@ -21,7 +21,7 @@ func loadScene(name:String, args:Dictionary = {}):
 		if len(sceneHistory) > maxSceneHistoryCount:
 			sceneHistory.remove_at(0)
 		
-	for arg in args: Main.SceneArgs[arg] = args[arg]
+	Main.M.updateSceneArgs(args)
 	
 func goBack():
 	var tL:int = len(sceneHistory)

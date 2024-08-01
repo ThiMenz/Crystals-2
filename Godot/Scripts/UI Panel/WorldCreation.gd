@@ -1,6 +1,6 @@
 extends Panel
 
-var port:int = 0
+var port:int = 37979
 var worldName:String = "Wonderful World"
 
 func _on_back_button_down():
@@ -14,12 +14,18 @@ func _on_world_name_edit_text_changed(new_text):
 
 
 func _on_continue_button_button_down():
+	
+	var basicInfos := {
+		"WorldName":worldName, 
+		"WorldPort":port
+	}
+	Main.M.updateSceneArgs(basicInfos)
+	
 	var wcp:int = Main.SceneArgs["WorldCreationProcess"]
-	var basicInfos := {"WorldName":worldName, "WorldPort":port}
 	if wcp == 0:
-		pass # Load Main Scene
+		Main.M.Game_Manager.loadNewGame(GameManager.getInfosFromSceneArgs())
 	elif wcp == 1:
-		Main.M.UI.loadScene("CustomWorld", basicInfos)
+		Main.M.UI.loadScene("CustomWorld")
 	elif wcp == 2:
-		Main.M.UI.loadScene("CopyWorld", basicInfos)
+		Main.M.UI.loadScene("CopyWorld")
 	

@@ -4,14 +4,29 @@ class_name Main extends Node
 ## deleted & can carry persistent infos - therefore the "Main"-Manager
 
 @export var MainSceneManager:SceneManager
+@export var Game_Manager:GameManager
 @export var UI:SceneManager
+var Multiplayer:MultiplayerManager
+var Simulation:SimulationManager
 
 static var SceneArgs := {}
 static var M:Main # This way newly loaded nodes  can access pretty much everything through this object
 
+func initialSaveSystemLoad():
+	SaveSystem._load()
+	if !SaveSystem.data.has("Worlds"): SaveSystem.data["Worlds"] = {}
+	
+	Game_Manager.worlds = SaveSystem.data["Worlds"]
+
+func updateSceneArgs(pArgs:Dictionary):
+	for arg in pArgs: 
+		SceneArgs[arg] = pArgs[arg]
+
 func _ready():
 	M = self
-	SaveSystem._load()
+	initialSaveSystemLoad()
+	
+	Engine.max_fps = 250
 	
 	UI.loadScene("MainMenu")
 

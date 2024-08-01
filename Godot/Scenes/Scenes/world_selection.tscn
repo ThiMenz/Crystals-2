@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://dl60sghuj8ytx"]
 
-[ext_resource type="Script" path="res://WorldSelection.gd" id="1_4auuk"]
+[ext_resource type="Script" path="res://Scripts/UI Panel/WorldSelection.gd" id="1_4auuk"]
 [ext_resource type="PackedScene" uid="uid://2bvlgwxs5ohd" path="res://Scenes/Objects/world_selection_element.tscn" id="2_rheim"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k3enr"]
@@ -10,12 +10,13 @@ bg_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bfek2"]
 
-[node name="WorldSelection" type="Panel"]
+[node name="WorldSelection" type="Panel" node_paths=PackedStringArray("WorldVBoxContainer")]
 offset_right = 800.0
 offset_bottom = 450.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_k3enr")
 script = ExtResource("1_4auuk")
 WorldSelectionElement = ExtResource("2_rheim")
+WorldVBoxContainer = NodePath("WorldScrollContainer/WorldVBoxContainer")
 
 [node name="WorldScrollContainer" type="ScrollContainer" parent="."]
 layout_mode = 0

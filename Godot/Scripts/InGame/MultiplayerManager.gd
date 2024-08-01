@@ -2,7 +2,7 @@ class_name MultiplayerManager extends Node
 
 ## Multiplayer Concept:
 ## Address & Port need to get inputted (or some sort of localhost option selected) 
-## That Port & Address needs to be globally available (at least the UDP-protocol)
+## That Port & Address needs to be globally available (at least through the UDP-protocol)
 ## optimally using a DDNS and static local network ip config
 ## If somebody should have security concerns with opening a port:
 ## They can use some sort of tunneling system (like playit.gg or hamachi)
@@ -16,7 +16,7 @@ var compressionAlgorithm = ENetConnection.COMPRESS_RANGE_CODER
 
 var peer = ENetMultiplayerPeer.new()
 func _ready():
-	
+	Main.M.Multiplayer = self
 	multiplayer.connected_to_server.connect(connected_to_server)
 	multiplayer.connection_failed.connect(connection_failed)
 	multiplayer.peer_connected.connect(peer_connected)

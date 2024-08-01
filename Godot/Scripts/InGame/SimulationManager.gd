@@ -21,20 +21,22 @@ static var biomThreadResultMutex := Mutex.new()
 static var biomThreadPlayerPositionMutex := Mutex.new()
 static var biomThreadPlayerPosition := Vector3(0, 0, 0)
 
-static var inPlatformingMode = false
+static var inPlatformingMode := false
 	
+var simulationBegan := false
 var thread := Thread.new()
 
 func _ready():
+	Main.M.Simulation = self
 	
-	Engine.max_fps = 250
-	
+func beginSimulation():
 	var timestamp:float = Time.get_ticks_usec()
 
 	TerrainGenerator.simReady()
 	ChunkManager.InitializeMainLoopChunks() # Can take a good while (~1s omh)
 	
 	print((Time.get_ticks_usec() - timestamp) / 1000.)
+	simulationBegan = true
 	
 func _test_thread(pTime, pRngSeed):
 	for i in 1: 
@@ -47,6 +49,9 @@ func _test_thread(pTime, pRngSeed):
 static var Frame:int = 0
 
 func _process(delta):
+	
+	if !simulationBegan: return
+	
 	Frame += 1
 
 	if Frame == 1:

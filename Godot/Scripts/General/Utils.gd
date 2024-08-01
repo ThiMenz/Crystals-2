@@ -3,10 +3,11 @@ class_name Utils
 static func CreateWorldList(worldElmt, worldVBoxContainer):
 	var worlds = SaveSystem.D("Worlds")
 	if worlds != null:
-		for world:Dictionary in worlds:
-			var elmt = worldElmt.instantiate()
+		for worldName:String in worlds:
+			var elmt:WorldSelectionElement = worldElmt.instantiate()
 			worldVBoxContainer.add_child(elmt)
-			elmt.worldName = world["Name"]
+			elmt.worldName = worldName
+			elmt.update()
 
 static func Vec2iInBox(vec:Vector2i, minX:int, maxX:int, minY:int, maxY:int) -> bool:
 	return vec.x >= minX && vec.x <= maxX && vec.y >= minY && vec.y <= maxY

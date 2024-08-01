@@ -1,6 +1,6 @@
 [gd_scene load_steps=11 format=3 uid="uid://c200qprxbvg4w"]
 
-[ext_resource type="Script" path="res://MainMenu.gd" id="1_3bfnb"]
+[ext_resource type="Script" path="res://Scripts/UI Panel/MainMenu.gd" id="1_3bfnb"]
 [ext_resource type="FontFile" uid="uid://bjyn587irpv64" path="res://Fonts/Handlee-Regular.ttf" id="2_aabvc"]
 [ext_resource type="FontFile" uid="uid://cc30qdd0p2cgs" path="res://Fonts/Gluten-Bold.ttf" id="3_vr8te"]
 

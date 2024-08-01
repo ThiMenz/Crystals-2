@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://ml6tl8m87613"]
 
 [ext_resource type="FontFile" uid="uid://cc30qdd0p2cgs" path="res://Fonts/Gluten-Bold.ttf" id="1_dfuqb"]
-[ext_resource type="Script" path="res://CreationProcessSelection.gd" id="1_rw4no"]
+[ext_resource type="Script" path="res://Scripts/UI Panel/CreationProcessSelection.gd" id="1_rw4no"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h67ig"]
 bg_color = Color(0, 0, 0, 1)
