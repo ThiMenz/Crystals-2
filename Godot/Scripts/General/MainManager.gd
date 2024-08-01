@@ -14,6 +14,7 @@ static var M:Main # This way newly loaded nodes  can access pretty much everythi
 
 func initialSaveSystemLoad():
 	SaveSystem._load()
+	if !SaveSystem.data.has("UserID"): SaveSystem.data["UserID"] = GenerateUserID()
 	if !SaveSystem.data.has("Worlds"): SaveSystem.data["Worlds"] = {}
 	
 	Game_Manager.worlds = SaveSystem.data["Worlds"]
@@ -29,6 +30,25 @@ func _ready():
 	Engine.max_fps = 250
 	
 	UI.loadScene("MainMenu")
+	
+func GenerateUserID() -> String:
+	var ctx = HashingContext.new()
+	ctx.start(HashingContext.HASH_SHA256)
+	for address in IP.get_local_addresses(): ctx.update(var_to_bytes(address))
+	var res:PackedByteArray = ctx.finish()
+	for i in 16: # 1 in ~3*10^38 + same IP hash
+		res.append(randi_range(0, 255))	
+	const USER_ID_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789?!"
+	var userID := ""
+	for i in 16:
+		var t1 = res[i * 3]
+		var t2 = res[i * 3 + 1]
+		var t3 = res[i * 3 + 2]
+		userID += USER_ID_CHARS[t1 & 63]
+		userID += USER_ID_CHARS[((t1 & 192) >> 2) | (t2 & 15)]
+		userID += USER_ID_CHARS[((t2 & 240) >> 2) | (t3 & 3)]
+		userID += USER_ID_CHARS[((t3 & 252) >> 2)]
+	return userID
 
 func GetCmdLineArgDict() -> Dictionary:
 	var arguments = {}
@@ -46,6 +66,7 @@ func _notification(what):
 
 ## Will be called on pretty much every application closure 
 ## Alt+F4, Taskmanager Force Quit, Window "X" and Quit Btn
+## Internal Restart Button in the godot editor is an exception!
 ## TODO test PID-CMD-closure - but should be the same as Taskmanager
 func _quit(): 
 	SaveSystem._save()

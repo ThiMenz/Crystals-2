@@ -105,7 +105,7 @@ func BiomThreadFunction():
 			
 	
 	biomThreadTick += 1
-	OS.delay_usec(500) # To ensure that the tick count can't realistically reach 2^63
+	OS.delay_usec(500) # To ensure that the tick count can't realistically reach 2^63 and overload
 
 func LoadBiom():
 	
