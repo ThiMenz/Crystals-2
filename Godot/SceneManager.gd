@@ -6,25 +6,29 @@ class_name SceneManager extends Node
 @export var scenes:Dictionary = {}
 @export var storeSceneHistory:bool = false
 
-## TODO Memory overload currently theoratically possible, but tbf pretty 
-## much nobody clicks a million (or even more) UI buttons in one runtime xD
+const maxSceneHistoryCount = 1024 ## To prevent memory overload
 var sceneHistory:Array[String] = []
 var currentScene = null
 
 func loadScene(name:String, args:Dictionary = {}):
-	if currentScene != null: currentScene.queue_free() 
+	unload()
 	
 	var tScene = scenes[name].instantiate()
 	add_child(tScene)
 	currentScene = tScene
 	if storeSceneHistory:
 		sceneHistory.append(name)	
+		if len(sceneHistory) > maxSceneHistoryCount:
+			sceneHistory.remove_at(0)
 		
-	Main.SceneArgs = args
+	for arg in args: Main.SceneArgs[arg] = args[arg]
 	
 func goBack():
 	var tL:int = len(sceneHistory)
 	var tScene = sceneHistory[tL-2]
 	sceneHistory.remove_at(tL-1)
-	sceneHistory.remove_at(tL-2)
+	sceneHistory.remove_at(tL-2) ## Could through error if maxSceneHistoryCount's "UI depth" is reached
 	loadScene(tScene)
+	
+func unload():
+	if currentScene != null: currentScene.queue_free() 

@@ -1,0 +1,87 @@
+[gd_scene load_steps=5 format=3 uid="uid://cas0tm4g1wn4j"]
+
+[ext_resource type="Script" path="res://WorldCreationSettings.gd" id="1_3xyrf"]
+[ext_resource type="FontFile" uid="uid://cc30qdd0p2cgs" path="res://Fonts/Gluten-Bold.ttf" id="2_y3rrf"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h67ig"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="FontVariation" id="FontVariation_k7a2x"]
+base_font = ExtResource("2_y3rrf")
+
+[node name="WorldCreationSettings" type="Panel" node_paths=PackedStringArray("SeedInpField")]
+offset_right = 800.0
+offset_bottom = 450.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_h67ig")
+script = ExtResource("1_3xyrf")
+SeedInpField = NodePath("SeedEdit")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -271.0
+offset_top = 16.0
+offset_right = 272.0
+offset_bottom = 76.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.8, 1, 0.847059, 1)
+theme_override_fonts/font = SubResource("FontVariation_k7a2x")
+theme_override_font_sizes/font_size = 41
+text = "Custom World Creation"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Back" type="Button" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 9.0
+offset_right = 77.0
+offset_bottom = 49.0
+text = "Back"
+
+[node name="SeedEdit" type="LineEdit" parent="."]
+layout_mode = 0
+offset_left = 335.0
+offset_top = 180.0
+offset_right = 522.0
+offset_bottom = 211.0
+placeholder_text = "Random"
+alignment = 1
+max_length = 18
+editable = false
+
+[node name="SeedTxt" type="Label" parent="."]
+layout_mode = 0
+offset_left = 258.0
+offset_top = 182.0
+offset_right = 327.0
+offset_bottom = 207.0
+text = "Seed:"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 0
+offset_left = 319.0
+offset_top = 342.0
+offset_right = 481.0
+offset_bottom = 371.0
+text = "Continue"
+
+[node name="CheckButton" type="CheckButton" parent="."]
+layout_direction = 2
+layout_mode = 0
+offset_left = 294.0
+offset_top = 137.0
+offset_right = 504.0
+offset_bottom = 168.0
+button_pressed = true
+text = "Create Random Seed"
+alignment = 1
+
+[connection signal="button_down" from="Back" to="." method="_on_back_button_down"]
+[connection signal="text_changed" from="SeedEdit" to="." method="_on_seed_edit_text_changed"]
+[connection signal="button_down" from="Button" to="." method="_on_button_button_down"]
+[connection signal="toggled" from="CheckButton" to="." method="_on_check_button_toggled"]

@@ -1,0 +1,65 @@
+[gd_scene load_steps=8 format=3 uid="uid://drcrqkrsle6j0"]
+
+[ext_resource type="Script" path="res://CopyWorld.gd" id="1_c7a0m"]
+[ext_resource type="PackedScene" uid="uid://2bvlgwxs5ohd" path="res://Scenes/Objects/world_selection_element.tscn" id="2_1bofn"]
+[ext_resource type="FontFile" uid="uid://cc30qdd0p2cgs" path="res://Fonts/Gluten-Bold.ttf" id="3_hay5r"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h67ig"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="FontVariation" id="FontVariation_k7a2x"]
+base_font = ExtResource("3_hay5r")
+
+[sub_resource type="Theme" id="Theme_rhr7j"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_y5d7p"]
+
+[node name="WorldCopy" type="Panel"]
+offset_right = 800.0
+offset_bottom = 450.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_h67ig")
+script = ExtResource("1_c7a0m")
+WorldSelectionElement = ExtResource("2_1bofn")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -271.0
+offset_top = 16.0
+offset_right = 272.0
+offset_bottom = 76.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.8, 1, 0.847059, 1)
+theme_override_fonts/font = SubResource("FontVariation_k7a2x")
+theme_override_font_sizes/font_size = 41
+text = "World Copy"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Back" type="Button" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 9.0
+offset_right = 77.0
+offset_bottom = 49.0
+text = "Back"
+
+[node name="WorldScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 98.0
+offset_right = 800.0
+offset_bottom = 450.0
+theme = SubResource("Theme_rhr7j")
+theme_override_styles/panel = SubResource("StyleBoxEmpty_y5d7p")
+horizontal_scroll_mode = 3
+
+[node name="WorldVBoxContainer" type="VBoxContainer" parent="WorldScrollContainer"]
+custom_minimum_size = Vector2(800, 350)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 5
+
+[connection signal="button_down" from="Back" to="." method="_on_back_button_down"]

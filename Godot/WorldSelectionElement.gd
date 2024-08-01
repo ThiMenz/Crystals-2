@@ -1,5 +1,6 @@
 extends Panel #class_name WorldSelectionElement?
 
+var worldName = ""
+
 func _on_button_down():
-	pass
-	
+	Main.M.worldSelected.emit(worldName)

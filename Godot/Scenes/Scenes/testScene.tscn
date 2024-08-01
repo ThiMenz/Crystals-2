@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://cwfafafmeedcv"]
+[gd_scene load_steps=14 format=3 uid="uid://cwfafafmeedcv"]
 
 [ext_resource type="Script" path="res://MainManager.gd" id="1_rw1qm"]
 [ext_resource type="Script" path="res://SceneManager.gd" id="2_jr7ul"]
@@ -7,6 +7,9 @@
 [ext_resource type="PackedScene" uid="uid://dl60sghuj8ytx" path="res://Scenes/Scenes/world_selection.tscn" id="4_ce1hy"]
 [ext_resource type="FontFile" uid="uid://cc30qdd0p2cgs" path="res://Fonts/Gluten-Bold.ttf" id="5_1tn2y"]
 [ext_resource type="PackedScene" uid="uid://ml6tl8m87613" path="res://Scenes/Scenes/creation_process_selection.tscn" id="5_mr42l"]
+[ext_resource type="PackedScene" uid="uid://bp50ndrq3hnkd" path="res://Scenes/Scenes/basic_world_creation.tscn" id="6_lg37c"]
+[ext_resource type="PackedScene" uid="uid://drcrqkrsle6j0" path="res://Scenes/Scenes/world_copy.tscn" id="7_l63vq"]
+[ext_resource type="PackedScene" uid="uid://cas0tm4g1wn4j" path="res://Scenes/Scenes/world_creation_settings.tscn" id="8_7xliv"]
 [ext_resource type="Script" path="res://GameManager.gd" id="10_wdld2"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h67ig"]
@@ -29,6 +32,9 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_jr7ul")
 scenes = {
+"BasicWorldInfos": ExtResource("6_lg37c"),
+"CopyWorld": ExtResource("7_l63vq"),
+"CustomWorld": ExtResource("8_7xliv"),
 "MainMenu": ExtResource("3_7fmoq"),
 "WorldCreationProcess": ExtResource("5_mr42l"),
 "Worlds": ExtResource("4_ce1hy")
@@ -36,6 +42,7 @@ scenes = {
 storeSceneHistory = true
 
 [node name="Preset" type="Panel" parent="UI"]
+visible = false
 layout_mode = 0
 offset_right = 800.0
 offset_bottom = 450.0
@@ -57,6 +64,14 @@ theme_override_font_sizes/font_size = 41
 text = "Placeholder"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="Back" type="Button" parent="UI/Preset"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 9.0
+offset_right = 77.0
+offset_bottom = 49.0
+text = "Back"
 
 [node name="MainScenes" type="Node3D" parent="."]
 script = ExtResource("2_jr7ul")

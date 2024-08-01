@@ -38,7 +38,7 @@ func createServer(pPort:int):
 
 	port = pPort
 	
-	var error = peer.create_server(port, 4)
+	var error = peer.create_server(port, 10)
 	
 	print(str(error))
 	

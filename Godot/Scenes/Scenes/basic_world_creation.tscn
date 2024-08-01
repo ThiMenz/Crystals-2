@@ -1,0 +1,103 @@
+[gd_scene load_steps=5 format=3 uid="uid://bp50ndrq3hnkd"]
+
+[ext_resource type="Script" path="res://WorldCreation.gd" id="1_wnq0c"]
+[ext_resource type="FontFile" uid="uid://cc30qdd0p2cgs" path="res://Fonts/Gluten-Bold.ttf" id="2_ad37u"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h67ig"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="FontVariation" id="FontVariation_k7a2x"]
+base_font = ExtResource("2_ad37u")
+
+[node name="BasicWorldCreation" type="Panel"]
+offset_right = 800.0
+offset_bottom = 450.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_h67ig")
+script = ExtResource("1_wnq0c")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -271.0
+offset_top = 16.0
+offset_right = 272.0
+offset_bottom = 76.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.8, 1, 0.847059, 1)
+theme_override_fonts/font = SubResource("FontVariation_k7a2x")
+theme_override_font_sizes/font_size = 41
+text = "Basic World Info"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Back" type="Button" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 9.0
+offset_right = 77.0
+offset_bottom = 49.0
+text = "Back"
+
+[node name="PortEdit" type="LineEdit" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 342.0
+offset_top = 210.0
+offset_right = 529.0
+offset_bottom = 241.0
+text = "37979"
+alignment = 1
+
+[node name="WorldNameEdit" type="LineEdit" parent="."]
+layout_mode = 0
+offset_left = 342.0
+offset_top = 164.0
+offset_right = 529.0
+offset_bottom = 195.0
+text = "Wonderful World"
+alignment = 1
+
+[node name="PortTxt" type="Label" parent="."]
+layout_mode = 0
+offset_left = 265.0
+offset_top = 212.0
+offset_right = 334.0
+offset_bottom = 237.0
+text = "Port:"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="NameTxt" type="Label" parent="."]
+layout_mode = 0
+offset_left = 265.0
+offset_top = 166.0
+offset_right = 334.0
+offset_bottom = 193.0
+text = "Name:"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="ContinueButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 319.0
+offset_top = 342.0
+offset_right = 481.0
+offset_bottom = 371.0
+text = "Continue"
+
+[node name="PortSpinBox" type="SpinBox" parent="."]
+layout_mode = 0
+offset_left = 345.0
+offset_top = 211.0
+offset_right = 528.0
+offset_bottom = 242.0
+max_value = 65535.0
+value = 37979.0
+alignment = 1
+
+[connection signal="button_down" from="Back" to="." method="_on_back_button_down"]
+[connection signal="text_changed" from="WorldNameEdit" to="." method="_on_world_name_edit_text_changed"]
+[connection signal="button_down" from="ContinueButton" to="." method="_on_continue_button_button_down"]
+[connection signal="value_changed" from="PortSpinBox" to="." method="_on_port_spin_box_value_changed"]

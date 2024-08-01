@@ -35,3 +35,6 @@ func _notification(what):
 func _quit(): 
 	SaveSystem._save()
 	get_tree().quit()
+	
+signal worldSelected(worldName)
+

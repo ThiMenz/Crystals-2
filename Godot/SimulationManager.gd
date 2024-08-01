@@ -20,6 +20,8 @@ static var biomThreadResultMutex := Mutex.new()
 
 static var biomThreadPlayerPositionMutex := Mutex.new()
 static var biomThreadPlayerPosition := Vector3(0, 0, 0)
+
+static var inPlatformingMode = false
 	
 var thread := Thread.new()
 
@@ -47,13 +49,6 @@ static var Frame:int = 0
 func _process(delta):
 	Frame += 1
 
-	#for i in 100000:
-	#	cos(300) + sin(200)
-		#TerrainPixelManager.getPixelInfo(Vector2i(3, 3))
-	
-	
-		
-	
 	if Frame == 1:
 		thread.start(_test_thread.bind(Time.get_ticks_usec(), rngSeed))
 	
@@ -64,6 +59,8 @@ func _process(delta):
 		TerrainGenerator.biomThreadResults.clear()
 		biomThreadResultMutex.unlock()
 	
-	#var timestamp:float = Time.get_ticks_usec()
-	ChunkManager.FrameProcess(MainCamera.position)
-	#print((Time.get_ticks_usec() - timestamp) / 1000.)
+	if inPlatformingMode:
+		return
+	else:
+		ChunkManager.FrameProcess(MainCamera.position)
+	
