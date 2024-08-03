@@ -1,5 +1,16 @@
 class_name Utils
 
+const ALMOST_INF := 999_999_999_999_999_999
+const ALMOST_MINUS_INF := -999_999_999_999_999_999
+
+const P2_30 := 2 ** 30
+const PM2_30 := -(2 ** 30)
+
+static func GetSavableQCTriangleArray(pArr:Dictionary) -> Array[Vector3i]:
+	var rArr : Array[Vector3i] = []
+	for t:QCTriangle in pArr: rArr.append(t.getSaveInfo())
+	return rArr
+
 static func CreateWorldList(worldElmt, worldVBoxContainer):
 	var worlds = SaveSystem.D("Worlds")
 	if worlds != null:

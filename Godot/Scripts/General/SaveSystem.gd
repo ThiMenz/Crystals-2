@@ -22,7 +22,7 @@ static func _save():
 	
 	var file = FileAccess.open(FILE_PATH, FileAccess.WRITE)
 	
-	for tByte in EncryptArray(var_to_bytes(data), CRYPT_KEY):
+	for tByte in EncryptArray(var_to_bytes_with_objects(data), CRYPT_KEY):
 		file.store_8(tByte)
 		
 	file.close()
@@ -30,7 +30,7 @@ static func _save():
 static func _load():
 	if !FileAccess.file_exists(FILE_PATH): return
 	var file = FileAccess.get_file_as_bytes(FILE_PATH)
-	data = bytes_to_var(EncryptArray(file, CRYPT_KEY))
+	data = bytes_to_var_with_objects(EncryptArray(file, CRYPT_KEY))
 	
 static func EncryptArray(pArr: PackedByteArray, pToken: int) -> PackedByteArray:
 	var rArr: PackedByteArray

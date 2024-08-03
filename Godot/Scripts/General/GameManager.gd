@@ -3,6 +3,7 @@ class_name GameManager extends Node
 ## Probably should be called "WorldManager" - the casual "GameManager" is the SimulationManager
 
 static var curWorldName:String = ""
+static var curWorld:Dictionary = {}
 static var worlds:Dictionary
 
 static func getInfosFromSceneArgs() -> Dictionary:
@@ -56,6 +57,7 @@ func copyGame(pWorldName:String) -> String:
 func loadGame(pWorldName:String):
 	curWorldName = pWorldName
 	var world:Dictionary = worlds[pWorldName]
+	curWorld = world
 	VRNG.set_seed(world["Seed"])
 	Main.M.UI.unload()
 	Main.M.MainSceneManager.loadScene("Game")

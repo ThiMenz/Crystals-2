@@ -9,6 +9,9 @@ class_name Main extends Node
 var Multiplayer:MultiplayerManager
 var Simulation:SimulationManager
 
+static var endingState := 0 ## 0 = Running without Biom Thread, 1 = Should End, 2 = Ended, 3 = Running with Biom Thread
+static var endingStateMutex := Mutex.new()
+
 static var SceneArgs := {}
 static var M:Main # This way newly loaded nodes  can access pretty much everything through this object
 
@@ -69,8 +72,21 @@ func _notification(what):
 ## Internal Restart Button in the godot editor is an exception!
 ## TODO test PID-CMD-closure - but should be the same as Taskmanager
 func _quit(): 
+	
+	## Making sure the Biom Thread got finished
+	endingStateMutex.lock()
+	if endingState == 3:
+		endingState = 1
+		endingStateMutex.unlock()
+		var b:bool = true
+		while b:
+			endingStateMutex.lock()
+			b = endingState != 2
+			endingStateMutex.unlock()
+	else: endingStateMutex.unlock()
+		
+	
 	SaveSystem._save()
 	get_tree().quit()
 	
 signal worldSelected(worldName)
-

@@ -1,8 +1,11 @@
 class_name MapGen extends Node
 
+const MAP_GEN_VERSION:int = 1 #1st = 1
+
 @export var terrainObject:HTerrain
 @export var terrainSpwn:PackedScene
 @export var TestBiomInfo:BiomInfo
+@export var BiomProperties:Array[BiomInfo]
 @export var randomizationStrength : Vector2
 
 static var chunkAABB_YValue = -10
@@ -14,108 +17,169 @@ func simReady():
 	TerrainChunk.spwn = terrainSpwn
 	TerrainChunk.spwnParent = self
 	
-	#threads.resize(2)
-	#for i in 2:
-	#	var thread = Thread.new()
-	#	threads[i] = thread
-	#
-	#
-	#var timestamp = Time.get_ticks_usec()
-	#print(timestamp)
-	#
-	#for i in 2:
-	#	threads[i].start(_test_thread.bind(timestamp))
-	#	
-	#print(Time.get_ticks_usec() - timestamp)
-		
-	#GenerateBiom()
-	
-## Load / Save System
-## Basic Multiplayer
-
-	
 	
 ## Terrain Update Infos
 var biomThreadResults:Array[Dictionary] = [] #{ pixel, requiredChunkUpdates }
+var biomThreadUNLOADResults:Array[Vector2i] = []
 
 ## General Biom Infos (Mainly accessed from the Biom-Thread)
-var bioms:Dictionary = {} # (int, Dictionary)
-var biomSaveInfos:Dictionary = {} # (int, Dictionary)
+var bioms:Dictionary = {} # (int, Dictionary()
+var biomSaveInfos:Dictionary = {} # (int(ID), Dictionary(Rect, Neighbors, startTriangle, BiomID, Border, MapGenVersion))
 var biomTicks:Array[int] = []
+var biomBorders:Array[Dictionary] = []
 
 ## Technically no hard-capped threshold (everything up to D=3 will be loaded)
 const MAX_LOADED_BIOMS:int = 128
 
-func loadBiomSaveInfosIn(pDict:Dictionary):
-	biomSaveInfos = pDict
-	
-	for biomSave in biomSaveInfos:
-		biomTicks.append(0)
+func Reset():
+	TerrainPixelManager.pixel.clear()
+	bioms.clear()
+	biomSaveInfos.clear()
+	biomBorders.clear()
+	allBiomBorders.clear()
+	biomTicks.clear()
+	biomThreadUNLOADResults.clear()
+	biomThreadResults.clear()
 
+func loadBiomSaveInfosIn(pDict:Dictionary):
+	if !pDict.has("Bioms"): pDict["Bioms"] = {}
+	biomSaveInfos = pDict["Bioms"]
+	
+	for biomSaveID:int in biomSaveInfos:
+		biomTicks.append(0)
+		
+		var biomSave:Dictionary = biomSaveInfos[biomSaveID]
+		var tBorderDict:Dictionary = {}
+		if biomSave.has("Border"):
+			for triangle:Vector3i in biomSave["Border"]:
+				tBorderDict[get_QCTriangle_fromVec3(triangle)] = true
+		allBiomBorders.merge(tBorderDict)
+		biomBorders.append(tBorderDict)
 
 var biomThreadTick:int = 0
 func BiomThreadFunction():
 	
-	SimulationManager.biomThreadPlayerPositionMutex.lock()
-	var playerPos:Vector3 = SimulationManager.biomThreadPlayerPosition
-	SimulationManager.biomThreadPlayerPositionMutex.unlock()
+	Main.endingStateMutex.lock()
+	Main.endingState = 3
+	Main.endingStateMutex.unlock()
 	
-	var visitedBiomIDs := {}
-	var dijkstraFrontier:Array[int] = []
-	var firstID:int = -1
-	for biom:Dictionary in biomSaveInfos:
-		if biom["Rect"].has_point(playerPos):
-			var tID:int = biom["ID"]
-			dijkstraFrontier.append(tID)
-			visitedBiomIDs[tID] = true
-			biomTicks[tID] = biomThreadTick
-			if firstID == -1 && !bioms.has(tID): firstID = tID
-	
-	for i in 2:
-		var newDijkstraFrontier:Array[int] = []
-		for tBiomID:int in dijkstraFrontier:
-			
-			var tBiom:Dictionary = biomSaveInfos[tBiomID]
-			for neighbor in tBiom["Neighbors"]:
-				if visitedBiomIDs.has(neighbor): continue
-				visitedBiomIDs[neighbor] = true
-				newDijkstraFrontier.append(neighbor)
-				biomTicks[neighbor] = biomThreadTick
-				if firstID == -1 && !bioms.has(neighbor): firstID = neighbor
-				
-		dijkstraFrontier = newDijkstraFrontier
-	
-	while len(bioms) >= MAX_LOADED_BIOMS:
-		var unloadID:int = -1
-		var lowestTick:int = 999_999_999_999_999
-		for biomID in bioms:
-			var tTick:int = biomTicks[biomID]
-			if biomTicks[biomID] != biomThreadTick && lowestTick > tTick:
-				lowestTick = tTick
-				unloadID = biomID
-				
-		if unloadID == -1: break
-				
-		## UNLOAD Mechanism
+	while true: ## In reality until the MainManager realised, that the application should get closed
+		Main.endingStateMutex.lock()
+		if Main.endingState == 1: 
+			Main.endingState = 2
+			Main.endingStateMutex.unlock()
+			return
+		Main.endingStateMutex.unlock()
 		
-	if firstID != -1:
+		SimulationManager.biomThreadPlayerPositionMutex.lock()
+		var playerPos:Vector3 = SimulationManager.biomThreadPlayerPosition
+		SimulationManager.biomThreadPlayerPositionMutex.unlock()
 		
-		## LOAD Mechanism
-		pass
+		var playerChunkPos:Vector2i = Vector2i(int(playerPos.x) >> 6, int(playerPos.z) >> 6)
+		var playerRect:Rect2i = Rect2i(playerChunkPos - Vector2i(1, 1), Vector2i(2, 2))
+		
+		var visitedBiomIDs := {}
+		var dijkstraFrontier:Array[int] = []
+		var firstID:int = -1
+		for tID:int in biomSaveInfos:
+			var biom:Dictionary = biomSaveInfos[tID]
+			if biom["Rect"].intersects(playerRect):
+				#var tID:int = biom["ID"]
+				dijkstraFrontier.append(tID)
+				visitedBiomIDs[tID] = true
+				biomTicks[tID] = biomThreadTick
+				if firstID == -1 && !bioms.has(tID): firstID = tID
+		
+		for i in 2:
+			var newDijkstraFrontier:Array[int] = []
+			for tBiomID:int in dijkstraFrontier:
+				
+				var tBiom:Dictionary = biomSaveInfos[tBiomID]
+				for neighbor in tBiom["Neighbors"]:
+					if visitedBiomIDs.has(neighbor): continue
+					visitedBiomIDs[neighbor] = true
+					newDijkstraFrontier.append(neighbor)
+					biomTicks[neighbor] = biomThreadTick
+					if firstID == -1 && !bioms.has(neighbor): firstID = neighbor
+					
+			dijkstraFrontier = newDijkstraFrontier
+		
+		while len(bioms) >= MAX_LOADED_BIOMS:
+			var unloadID:int = -1
+			var lowestTick:int = Utils.ALMOST_INF
+			for biomID in bioms:
+				var tTick:int = biomTicks[biomID]
+				if biomTicks[biomID] != biomThreadTick && lowestTick > tTick:
+					lowestTick = tTick
+					unloadID = biomID
+					
+			if unloadID == -1: break	
+			UnloadBiom(unloadID)
 			
-	
-	biomThreadTick += 1
-	OS.delay_usec(500) # To ensure that the tick count can't realistically reach 2^63 and overload
+		if firstID != -1: 
+			LoadBiom(firstID)
+				
+		biomThreadTick += 1
+		OS.delay_usec(500) # To ensure that the tick count can't realistically reach 2^63 and overload
 
-func LoadBiom():
+func BiomInitialisation(pEntry:QCTriangle):
 	
-	#Rect2.has_point
+	GenerateBiom(
+		-1, 
+		Main.M.Simulation.rngSeed,
+		MAP_GEN_VERSION, 
+		pEntry, 
+		GenerateBiomType()
+	)
 	
-	pass
+func GenerateBiomType() -> int:
+	return 0
+
+func LoadBiom(pBiomID:int):
+	var biom:Dictionary = biomSaveInfos[pBiomID]
+	var tBiomBorder:Dictionary = biomBorders[pBiomID]
 	
-func GenerateBiom(pRngSeed:int):
+	for bt:QCTriangle in tBiomBorder: allBiomBorders.erase(bt)
+
+	GenerateBiom(
+		pBiomID, 
+		Main.M.Simulation.rngSeed, ## Could be unrealistically not be synchronized -> TODO Mutex
+		biom["MapGenVersion"], 
+		get_QCTriangle_fromVec3(biom["Start"]), 
+		biom["BiomID"]
+	)
+	
+	# Not necessary, because that will be loaded in the BBG
+	# for bt:QCTriangle in tBiomBorder: allBiomBorders[bt] = true
+	
+func UnloadBiom(pBiomID:int):
+	var biom:Dictionary = bioms[pBiomID]
+	var tUnloadArray:Array[Vector2i] = []
+	var pPixelDict:Dictionary = TerrainPixelManager.pixel.duplicate(true)
+	
+	for tPos:Vector2i in biom["AllBaseGridCoords"]:
+		if !pPixelDict.has(tPos): continue
+		
+		var tPxl:TerrainPixelInfo = pPixelDict[tPos]
+		if tPxl.getBiomDependency() == pBiomID: tUnloadArray.append(tPos)
+	
+	SimulationManager.biomThreadUNLOADResultMutex.lock()
+	biomThreadUNLOADResults.append_array(tUnloadArray)
+	bioms.erase(pBiomID)
+	SimulationManager.biomThreadUNLOADResultMutex.unlock()
+	
+#get_QC(Vector2i(0,0)).triangle1
+func GenerateBiom(pBiomIDPar:int, pRngSeed:int, pMapGenVersion:int, pEntry:QCTriangle, pBiomInfoID:int): # MapGenVersion
+	
+	var newGen:bool = pBiomIDPar == -1
+	var pBiomID:int = pBiomIDPar
+	
+	if newGen:
+		pBiomID = len(biomSaveInfos)
+		biomTicks.append(biomThreadTick)
 	
 	var pPixelDict:Dictionary = TerrainPixelManager.pixel.duplicate(true)
+	var pBiomInfo = BiomProperties[pBiomInfoID]
 	
 	var defaultFNL := FastNoiseLite.new()
 	defaultFNL.seed = pRngSeed
@@ -123,7 +187,7 @@ func GenerateBiom(pRngSeed:int):
 	
 	var timestamp = Time.get_ticks_usec()
 	
-	var biomDict:Dictionary = GenerateBasePropertiesOfBiom(get_QC(Vector2i(0,0)).triangle1, TestBiomInfo, null)
+	var biomDict:Dictionary = GenerateBasePropertiesOfBiom(pEntry, pBiomInfo, null)
 	var allBaseGridCoords:Dictionary = {}
 	
 	var pixelUpdates:Dictionary = {}
@@ -154,6 +218,7 @@ func GenerateBiom(pRngSeed:int):
 		var newPxl := TerrainPixelInfo.new()
 		newPxl.setHeight(0)
 		newPxl.setSplatmap(1, 255)
+		newPxl.forceSetBiomDependency(pBiomID)
 		
 		#print(newPxl.getHeight())
 		
@@ -169,7 +234,99 @@ func GenerateBiom(pRngSeed:int):
 				allBaseGridCoords[neighbor] = true
 	
 	#var maxHeights : Array[float] = [., 1., 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8]
-	var curDijkstraFrontier:Array[Vector2i] = biomBorderBaseGridCoords.duplicate()
+	var tBorderCoords:Array[Vector2i] = biomBorderBaseGridCoords.duplicate()
+	var tInnerCoords:Dictionary = allBaseGridCoords.duplicate()
+	
+	LoadBiomBorderImpact(tBorderCoords.duplicate(), defaultFNL, pBiomID, pPixelDict, pixelUpdates, allBaseGridCoords)
+	
+	#var curDijkstraFrontier:Array[Vector2i] = biomBorderBaseGridCoords.duplicate()
+	#for i in 10:
+	#	var newDijkstraFrontier:Array[Vector2i] = []
+	#	var tMaxHeight:float = float(i) * 1 #maxHeights[i]
+	#	var tTextureBlendOffRegion:int = .44 * float(i) * 255
+	#	var tTextureBlendGround:int = 255 - tTextureBlendOffRegion
+	#	
+	#	for tPos:Vector2i in curDijkstraFrontier:
+	#		#print(defaultFNL.get_noise_2d(tPos.x, tPos.y) + 1.)
+	#		var fnlVal:float = 2.5 * (defaultFNL.get_noise_2d(tPos.x, tPos.y) + 1.)
+	#		var newPxl := TerrainPixelInfo.new()
+	#		newPxl.setHeight(maxf(.2, minf(tMaxHeight, fnlVal))) # maxf(.5, minf(tMaxHeight, fnlVal))
+	#		newPxl.setSplatmap(0, 255)
+	#		newPxl.setSplatmap(1, tTextureBlendGround)
+	#		newPxl.setBiomDependency(pBiomID)
+	#		
+	#		if pPixelDict.has(tPos): newPxl.merge(pPixelDict[tPos])
+	#		if pixelUpdates.has(tPos): newPxl.merge(pixelUpdates[tPos])
+	#		pixelUpdates[tPos] = newPxl
+	#		
+	#	if i == 3: break
+	#	
+	#	for tPos:Vector2i in curDijkstraFrontier:
+	#		for neighbor in Utils.GetVec2iNeighbors(tPos):
+	#			if allBaseGridCoords.has(neighbor): continue
+	#			allBaseGridCoords[neighbor] = true
+	#			newDijkstraFrontier.append(neighbor)	
+	#			
+	#	curDijkstraFrontier = newDijkstraFrontier
+	
+	biomDict["InnerBaseGridCoords"] = tInnerCoords
+	biomDict["AllBaseGridCoords"] = allBaseGridCoords
+	#biomDict["OuterBaseGridCoords"] = biomBorderBaseGridCoords
+	biomDict["BorderCoords"] = tBorderCoords
+	
+	var tBounds:Vector4i = Vector4i(Utils.P2_30, Utils.PM2_30, Utils.P2_30, Utils.PM2_30)
+	
+	for coord:Vector2i in pixelUpdates.keys():
+		for neighbor:Vector2i in Utils.GetVec2iNeighbors(Vector2i(coord.x >> 6, coord.y >> 6)):
+			requiredChunkUpdates[neighbor] = true
+			
+			if neighbor.x < tBounds.x: tBounds.x = neighbor.x
+			if neighbor.x > tBounds.y: tBounds.y = neighbor.x
+			if neighbor.y < tBounds.z: tBounds.z = neighbor.y
+			if neighbor.y > tBounds.w: tBounds.w = neighbor.y
+			
+	var tBiomRect:Rect2i = Rect2i(
+		Vector2i(tBounds.x, tBounds.z),
+		Vector2i(tBounds.y-tBounds.x+1, tBounds.w-tBounds.z+1)
+		)	
+		
+	if !biomSaveInfos.has(pBiomID):
+		var tBiomNeighbors:Array[int] = []
+		for biomID in biomSaveInfos:
+			if tBiomRect.intersects(biomSaveInfos[biomID]["Rect"]):
+				tBiomNeighbors.append(biomID)
+		
+		#(Rect, Neighbors, startTriangle, BiomID, Border, MapGenVersion)
+		var tBiomSaveDict = {
+			"BiomID": pBiomInfo.ID,
+			"Border": Utils.GetSavableQCTriangleArray(biomDict["BBGDict"]["Border"]),
+			"Start": pEntry.getSaveInfo(),
+			"MapGenVersion": pMapGenVersion,
+			"Rect": tBiomRect,
+			"Neighbors": tBiomNeighbors
+		}	
+		
+		biomSaveInfos[pBiomID] = tBiomSaveDict
+		
+	for neighborID in biomSaveInfos[pBiomID]["Neighbors"]:
+		if bioms.has(neighborID):
+			var tiBiom:Dictionary = bioms[neighborID]
+			LoadBiomBorderImpact(tiBiom["BorderCoords"].duplicate(), defaultFNL, neighborID, pPixelDict, pixelUpdates, tiBiom["InnerBaseGridCoords"].duplicate())
+	
+	bioms[pBiomID] = biomDict
+	
+	print("Generate Biom finished in %ms".format([(Time.get_ticks_usec()-timestamp)/1000.], "%"))
+	
+	SimulationManager.biomThreadResultMutex.lock()
+	biomThreadResults.append({"Pixel":pixelUpdates, "ChunkUpdates":requiredChunkUpdates})
+	SimulationManager.biomThreadResultMutex.unlock()
+
+var allBiomBorders:Dictionary = {}
+var nextBiomID:int = 0
+
+func LoadBiomBorderImpact(startingBorderBaseGridCoords, defaultFNL, pBiomID, pPixelDict, pixelUpdates, allBaseGridCoords):
+	
+	var curDijkstraFrontier:Array[Vector2i] = startingBorderBaseGridCoords.duplicate()
 	for i in 10:
 		var newDijkstraFrontier:Array[Vector2i] = []
 		var tMaxHeight:float = float(i) * 1 #maxHeights[i]
@@ -181,9 +338,9 @@ func GenerateBiom(pRngSeed:int):
 			var fnlVal:float = 2.5 * (defaultFNL.get_noise_2d(tPos.x, tPos.y) + 1.)
 			var newPxl := TerrainPixelInfo.new()
 			newPxl.setHeight(maxf(.2, minf(tMaxHeight, fnlVal))) # maxf(.5, minf(tMaxHeight, fnlVal))
-			
 			newPxl.setSplatmap(0, 255)
 			newPxl.setSplatmap(1, tTextureBlendGround)
+			newPxl.setBiomDependency(pBiomID)
 			
 			if pPixelDict.has(tPos): newPxl.merge(pPixelDict[tPos])
 			if pixelUpdates.has(tPos): newPxl.merge(pixelUpdates[tPos])
@@ -195,48 +352,6 @@ func GenerateBiom(pRngSeed:int):
 			for neighbor in Utils.GetVec2iNeighbors(tPos):
 				if allBaseGridCoords.has(neighbor): continue
 				allBaseGridCoords[neighbor] = true
-				newDijkstraFrontier.append(neighbor)	
-				
-		curDijkstraFrontier = newDijkstraFrontier
-		
-	#print(len(pixelUpdates))
-			
-	biomDict["AllBaseGridCoords"] = allBaseGridCoords
-	biomDict["OuterBaseGridCoords"] = biomBorderBaseGridCoords
-	
-	#bioms.append(biomDict)
-	
-	for coord:Vector2i in pixelUpdates.keys():
-		for neighbor:Vector2i in Utils.GetVec2iNeighbors(Vector2i(coord.x >> 6, coord.y >> 6)):
-			requiredChunkUpdates[neighbor] = true
-			
-	#a = 0
-	#for i in 1000000:
-	#	a += 1
-	#	pDict.has(Vector2i(3, 3))
-			
-	#print(a)
-	#print(pDict)
-	
-	print("Generate Biom finished in %ms".format([(Time.get_ticks_usec()-timestamp)/1000.], "%"))
-	
-	SimulationManager.biomThreadResultMutex.lock()
-	biomThreadResults.append({"Pixel":pixelUpdates, "ChunkUpdates":requiredChunkUpdates})
-	SimulationManager.biomThreadResultMutex.unlock()
-
-var allBiomBorders:Dictionary = {}
-var nextBiomID:int = 0
-
-func LoadBBG(pData:Dictionary):
-	var allTriangles:Dictionary = pData["Border"]
-	var curDijkstraFrontier:Array[Vector2i] = [pData["RandomMid"]]
-	while len(curDijkstraFrontier) != 0:
-		var newDijkstraFrontier:Array[Vector2i] = []
-		
-		for tPos:Vector2i in curDijkstraFrontier:
-			for neighbor in Utils.GetVec2iNeighbors(tPos):
-				if allTriangles.has(neighbor): continue
-				allTriangles[neighbor] = true
 				newDijkstraFrontier.append(neighbor)	
 				
 		curDijkstraFrontier = newDijkstraFrontier
@@ -262,14 +377,13 @@ func GenerateBasePropertiesOfBiom(initialTriangle:QCTriangle, biomInfo:BiomInfo,
 	
 	return {"Regions":subdivs, "Expansions":expansions, "BBGDict": bbgOutp}
 	
-func EmbellishBiom(biomDict:Dictionary):
-	var timestamp = Time.get_ticks_usec()
-	
-	print("EmbellishBiom finished in %ms".format([(Time.get_ticks_usec()-timestamp)/1000.], "%"))
-
 #region ** QC Management **
 
 var QCs:Dictionary = {}
+
+func get_QCTriangle_fromVec3(pVec3:Vector3i) -> QCTriangle:
+	var tQC:QC = get_QC(Vector2i(pVec3.x, pVec3.y))
+	return tQC.triangle1 if pVec3.z == 0 else tQC.triangle2
 
 func get_QC(pPos:Vector2i):
 	if QCs.has(pPos): 

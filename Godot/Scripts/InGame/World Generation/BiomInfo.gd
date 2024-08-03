@@ -1,5 +1,7 @@
 class_name BiomInfo extends Resource
 
+@export var ID:int
+
 @export_group("Main Border")
 @export var MinBiomSize:int
 @export var GenerationStages:Array[BiomGenStateInfo]
@@ -16,6 +18,7 @@ class_name BiomInfo extends Resource
 @export var MinFreeNewBorders:int
 
 func _init():
+	
 	pass
 
 func SplitIndividualGenerationStages() -> Array:

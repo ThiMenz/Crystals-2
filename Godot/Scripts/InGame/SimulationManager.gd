@@ -17,6 +17,7 @@ static var isServerBuild := false
 
 static var rngSeed := 0
 static var biomThreadResultMutex := Mutex.new()
+static var biomThreadUNLOADResultMutex := Mutex.new()
 
 static var biomThreadPlayerPositionMutex := Mutex.new()
 static var biomThreadPlayerPosition := Vector3(0, 0, 0)
@@ -32,40 +33,51 @@ func _ready():
 func beginSimulation():
 	var timestamp:float = Time.get_ticks_usec()
 
+	TerrainGenerator.Reset()
+	TerrainGenerator.loadBiomSaveInfosIn(Main.M.Game_Manager.curWorld)
 	TerrainGenerator.simReady()
 	ChunkManager.InitializeMainLoopChunks() # Can take a good while (~1s omh)
 	
+	## Generating the first Biom (on the main thread), if the world is new
+	if len(Main.M.Game_Manager.curWorld["Bioms"]) == 0:
+		TerrainGenerator.BiomInitialisation(TerrainGenerator.get_QC(Vector2i(0,0)).triangle1)
+		
 	print((Time.get_ticks_usec() - timestamp) / 1000.)
 	simulationBegan = true
-	
-func _test_thread(pTime, pRngSeed):
-	for i in 1: 
-		TerrainGenerator.GenerateBiom(pRngSeed) 
-		#VRNG.fRand(0, 30, Vector2i(3, 3))
-	#TerrainGenerator.GenerateBiom()
-	print(">>" + str(Time.get_ticks_usec()-pTime))
-
 
 static var Frame:int = 0
 
 func _process(delta):
 	
 	if !simulationBegan: return
-	
 	Frame += 1
-
-	if Frame == 1:
-		thread.start(_test_thread.bind(Time.get_ticks_usec(), rngSeed))
 	
+	mainThreadTerrainManagement() ## I'm concerned with moving it to only nonPlatformingMode!
+	
+	if inPlatformingMode:
+		return
+	else:
+		ChunkManager.FrameProcess(MainCamera.position)
+		
+func mainThreadTerrainManagement():
+	
+	## Starting the Biom Management Thread
+	if Frame == 1: thread.start(TerrainGenerator.BiomThreadFunction)
+		
+	## Updating the Terrain Pixels and their chunks as soon as the BiomThread
+	## finished one Biom-Load-Operation
 	if biomThreadResultMutex.try_lock():
 		for threadResult:Dictionary in TerrainGenerator.biomThreadResults:
 			TerrainPixelManager.mergeNewPixels(threadResult["Pixel"])
 			ChunkManager.UnloadChunks(threadResult["ChunkUpdates"])
 		TerrainGenerator.biomThreadResults.clear()
 		biomThreadResultMutex.unlock()
-	
-	if inPlatformingMode:
-		return
-	else:
-		ChunkManager.FrameProcess(MainCamera.position)
+		
+	## Omh 50k dictionary erase calls (with actually removing the items) take 3.5ms
+	## since bioms should never have even half of this size, its fine :)
+	if biomThreadUNLOADResultMutex.try_lock():
+		for tPos:Vector2i in TerrainGenerator.biomThreadUNLOADResults:
+			TerrainPixelManager.pixel.erase(tPos)
+		TerrainGenerator.biomThreadUNLOADResults.clear()
+		biomThreadUNLOADResultMutex.unlock()
 	
