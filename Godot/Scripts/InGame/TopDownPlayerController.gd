@@ -33,7 +33,7 @@ func simulation_process(delta:float):
 	var tDir:int = precalcKeyInp[tKeyInp]
 		
 	if tDir == -1: return
-		
+
 	var tMovementMult:float = delta * td_speed
 	var tPrefMovement:Vector3 = precalcDirs[tDir] * tMovementMult
 	var tBestVec := Utils.Linecast3D(self.position, tPrefMovement)

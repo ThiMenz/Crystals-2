@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://cwfafafmeedcv"]
+[gd_scene load_steps=21 format=3 uid="uid://cwfafafmeedcv"]
 
 [ext_resource type="Script" path="res://Scripts/General/MainManager.gd" id="1_rw1qm"]
 [ext_resource type="Script" path="res://Scripts/General/SceneManager.gd" id="2_jr7ul"]
@@ -12,6 +12,10 @@
 [ext_resource type="PackedScene" uid="uid://cas0tm4g1wn4j" path="res://Scenes/Scenes/world_creation_settings.tscn" id="8_7xliv"]
 [ext_resource type="Script" path="res://Scripts/General/GameManager.gd" id="10_wdld2"]
 [ext_resource type="Script" path="res://Scripts/General/InputSystem.gd" id="12_b1f5l"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="13_6u0i5"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="14_kpyma"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="15_5nvej"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/resources/camera_3d_resource.gd" id="16_l31sk"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h67ig"]
 bg_color = Color(0, 0, 0, 1)
@@ -19,12 +23,31 @@ bg_color = Color(0, 0, 0, 1)
 [sub_resource type="FontVariation" id="FontVariation_k7a2x"]
 base_font = ExtResource("5_1tn2y")
 
-[node name="Main" type="Node3D" node_paths=PackedStringArray("MainSceneManager", "Game_Manager", "UI", "Input_System", "td_raycast")]
+[sub_resource type="Resource" id="Resource_wy0nb"]
+script = ExtResource("15_5nvej")
+duration = 1.0
+transition = 0
+ease = 2
+
+[sub_resource type="Resource" id="Resource_jd5wa"]
+script = ExtResource("16_l31sk")
+cull_mask = 1048575
+h_offset = 0.0
+v_offset = 0.0
+projection = 0
+fov = 75.0
+size = 1.0
+frustum_offset = Vector2(0, 0)
+near = 0.05
+far = 4000.0
+
+[node name="Main" type="Node3D" node_paths=PackedStringArray("MainSceneManager", "Game_Manager", "UI", "Input_System", "Cam3D", "td_raycast")]
 script = ExtResource("1_rw1qm")
 MainSceneManager = NodePath("MainScenes")
 Game_Manager = NodePath("GameManager")
 UI = NodePath("UI")
 Input_System = NodePath("InputSystem")
+Cam3D = NodePath("PhantomCamera3D")
 td_raycast = NodePath("RayCast3D")
 
 [node name="UI" type="Control" parent="."]
@@ -105,3 +128,20 @@ script = ExtResource("12_b1f5l")
 
 [node name="RayCast3D" type="RayCast3D" parent="."]
 target_position = Vector3(0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.348572, 0.937282, 0, -0.937282, 0.348572, 0, 14.89, 5.64)
+
+[node name="PhantomCameraHost" type="Node" parent="Camera3D"]
+script = ExtResource("13_6u0i5")
+
+[node name="PhantomCamera3D" type="Node3D" parent="." node_paths=PackedStringArray("follow_target")]
+transform = Transform3D(1, 0, 0, 0, 0.348572, 0.937282, 0, -0.937282, 0.348572, 0, 14.89, 5.64)
+script = ExtResource("14_kpyma")
+follow_mode = 2
+follow_target = NodePath("..")
+tween_resource = SubResource("Resource_wy0nb")
+tween_on_load = false
+camera_3d_resource = SubResource("Resource_jd5wa")
+follow_offset = Vector3(0, 14.89, 5.64)
+follow_damping = true

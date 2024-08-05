@@ -7,6 +7,7 @@ class_name Main extends Node
 @export var Game_Manager:GameManager
 @export var UI:SceneManager
 @export var Input_System:InputSystem
+@export var Cam3D:PhantomCamera3D
 
 @export var td_raycast:RayCast3D
 
@@ -43,7 +44,7 @@ func _ready():
 	M = self
 	initialSaveSystemLoad()
 	
-	Engine.max_fps = 250
+	Engine.max_fps = 100
 	
 	UI.loadScene("MainMenu")
 	

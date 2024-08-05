@@ -12,6 +12,7 @@ func _copy(pCopy: PlayerSimState):
 
 func switch_to_goal():
 	obj.position = position
+	pass
 	
 func set_state(pPosition):
 	position = pPosition
