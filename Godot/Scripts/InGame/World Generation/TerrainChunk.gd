@@ -17,12 +17,18 @@ var splatmap2: Image
 var splatmap3: Image
 var splatmap4: Image
 
+#var floatHeightmap := PackedFloat32Array.new()
+var heightmapShape := HeightMapShape3D.new()
+
 func _init(pPos:Vector2i):
 	gameInstance = spwn.instantiate()
 	spwnParent.add_child(gameInstance)
 	
 	terrainData = HTerrainData.new()
 	terrainData.resize(65)
+	
+	heightmapShape.map_depth = 65
+	heightmapShape.map_width = 65
 	
 	gameInstance.set_data(terrainData)
 	
@@ -111,4 +117,7 @@ func FinalizeRendering():
 	terrainData.notify_region_change(modified_region, HTerrainData.CHANNEL_NORMAL)
 	terrainData.notify_region_change(modified_region, HTerrainData.CHANNEL_SPLAT)
 	
+	heightmapShape.map_data = heightmap.get_data().to_float32_array()
+	gameInstance.CustomColliderContainer.set_shape(heightmapShape)
+	#gameInstance.update_collider()
 	#gameInstance.set_data(terrainData)

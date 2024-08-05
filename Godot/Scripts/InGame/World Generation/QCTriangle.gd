@@ -12,6 +12,9 @@ func _init(pQC:QC, pSideO:bool, pSideL:bool):
 	if sideO: edges = [qc.edges[0], qc.edges[1], qc.edges[2]] if sideL else [qc.edges[0], qc.edges[1], qc.edges[3]]
 	else: edges = [qc.edges[2], qc.edges[3], qc.edges[0]] if sideL else [qc.edges[2], qc.edges[3], qc.edges[1]]
 
+func getMidPoint() -> Vector2:
+	return Utils.GetAverageVec2(edges)
+
 func getSaveInfo() -> Vector3i:
 	return Vector3i(qc.pos.x, qc.pos.y, 0 if qc.triangle1 == self else 1)
 

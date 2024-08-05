@@ -6,21 +6,34 @@ class_name Main extends Node
 @export var MainSceneManager:SceneManager
 @export var Game_Manager:GameManager
 @export var UI:SceneManager
+@export var Input_System:InputSystem
+
+@export var td_raycast:RayCast3D
+
 var Multiplayer:MultiplayerManager
 var Simulation:SimulationManager
+
+static var LinecastObj:RayCast3D
 
 static var endingState := 0 ## 0 = Running without Biom Thread, 1 = Should End, 2 = Ended, 3 = Running with Biom Thread
 static var endingStateMutex := Mutex.new()
 
 static var SceneArgs := {}
 static var M:Main # This way newly loaded nodes  can access pretty much everything through this object
+static var Inp:InputSystem
+
+static var USER_ID := ""
 
 func initialSaveSystemLoad():
+	LinecastObj = td_raycast
+	
 	SaveSystem._load()
 	if !SaveSystem.data.has("UserID"): SaveSystem.data["UserID"] = GenerateUserID()
 	if !SaveSystem.data.has("Worlds"): SaveSystem.data["Worlds"] = {}
 	
 	Game_Manager.worlds = SaveSystem.data["Worlds"]
+	Inp = Input_System
+	USER_ID = SaveSystem.data["UserID"]
 
 func updateSceneArgs(pArgs:Dictionary):
 	for arg in pArgs: 
@@ -72,8 +85,11 @@ func _notification(what):
 ## Internal Restart Button in the godot editor is an exception!
 ## TODO test PID-CMD-closure - but should be the same as Taskmanager
 func _quit(): 
+	stopBiomThread()
+	SaveSystem._save()
+	get_tree().quit()
 	
-	## Making sure the Biom Thread got finished
+func stopBiomThread():
 	endingStateMutex.lock()
 	if endingState == 3:
 		endingState = 1
@@ -84,9 +100,6 @@ func _quit():
 			b = endingState != 2
 			endingStateMutex.unlock()
 	else: endingStateMutex.unlock()
-		
-	
-	SaveSystem._save()
-	get_tree().quit()
+	endingState = 0
 	
 signal worldSelected(worldName)

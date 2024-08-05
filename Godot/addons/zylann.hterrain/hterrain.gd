@@ -1,6 +1,8 @@
 @tool
 class_name HTerrain extends Node3D
 
+@export var CustomColliderContainer:CollisionShape3D
+
 const HT_NativeFactory = preload("./native/factory.gd")
 const HT_Mesher = preload("./hterrain_mesher.gd")
 const HT_Grid = preload("./util/grid.gd")

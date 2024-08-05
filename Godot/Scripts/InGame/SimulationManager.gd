@@ -2,7 +2,7 @@ class_name SimulationManager extends Node
 
 ## TODO PERFORMANCE GOALS:
 ## The game should be playable on hardware which is 5 times slower than mine
-## I consider playable as: >50FPS, RAM usage <4GiB & Load-Time <15s 
+## I consider playable as: >50FPS (*5), RAM usage <4GiB & Load-Time <15s (/5) 
 ## NOTE omh = On my Hardware (most relevant specs: RTX 3060TI, i11700k, 16GB RAM)
 
 ## The Chunk-System should only be tested on hard-capped 50 fps due to Subchunk-Preloading
@@ -10,6 +10,7 @@ class_name SimulationManager extends Node
 
 @export var MainCamera:Camera3D
 @export var TerrainGenerator:MapGen
+@export var LocalTDController:TDPlayerController
 
 static var ChunkManager:TerrainChunkManager = TerrainChunkManager.new()
 
@@ -28,6 +29,7 @@ var simulationBegan := false
 var thread := Thread.new()
 
 func _ready():
+	Engine.physics_ticks_per_second = SPS
 	Main.M.Simulation = self
 	
 func beginSimulation():
@@ -42,25 +44,54 @@ func beginSimulation():
 	if len(Main.M.Game_Manager.curWorld["Bioms"]) == 0:
 		TerrainGenerator.BiomInitialisation(TerrainGenerator.get_QC(Vector2i(0,0)).triangle1)
 		
+	var worldStartPoint:Vector2 = TerrainGenerator.get_QC(Vector2i(0,0)).triangle1.getMidPoint()
+	LocalTDController.player_ready(Vector3(worldStartPoint.x - 32, .25, worldStartPoint.y - 32))
+		
 	print((Time.get_ticks_usec() - timestamp) / 1000.)
 	simulationBegan = true
 
 static var Frame:int = 0
+static var PhysicsTime = 0.0
+static var ProcessTime = 0.0 
+static var RelativeTimeUntilNextPhysicsFrame = 1.0
+static var StateInterpolationEnabled := true
+
+const SPS:int = 52
+const PHYSICS_DELTA = 1. / SPS
+
+var simulationObjects:Array[SimulationObject]
 
 func _process(delta):
 	
 	if !simulationBegan: return
 	Frame += 1
-	
-	mainThreadTerrainManagement() ## I'm concerned with moving it to only nonPlatformingMode!
+	ProcessTime += delta
+	RelativeTimeUntilNextPhysicsFrame = clamp(
+		1.0 - ((PhysicsTime + PHYSICS_DELTA - ProcessTime) / PHYSICS_DELTA), 0, 1)
+		
+	if !StateInterpolationEnabled: RelativeTimeUntilNextPhysicsFrame = 1
+		
+	mainThreadTerrainManagement() ## I'm concerned with moving it to only nonPlatformingMode
 	
 	if inPlatformingMode:
 		return
 	else:
 		ChunkManager.FrameProcess(MainCamera.position)
 		
-func mainThreadTerrainManagement():
+	for simObj in simulationObjects:
+		simObj.interpolate(RelativeTimeUntilNextPhysicsFrame)
+		
+func _physics_process(delta:float):
+	PhysicsTime += delta
+	print(delta)
 	
+	## For consistency this is strictly seperated
+	for simObj in simulationObjects: simObj.switch_to_goal()
+	for simObj in simulationObjects: simObj.simulation_process(delta)
+		
+	Main.Inp.FrameEndInputManagement()
+		
+func mainThreadTerrainManagement():
 	## Starting the Biom Management Thread
 	if Frame == 1: thread.start(TerrainGenerator.BiomThreadFunction)
 		

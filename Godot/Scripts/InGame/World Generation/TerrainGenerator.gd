@@ -450,7 +450,12 @@ func RegionBlocking(regions:Array[Dictionary], startTriangle:QCTriangle, general
 		if curRegionID == 0: 
 			if isCurRegionAtBorder: freeBorderRegionIDs.append(curRegionID)
 			continue
-		if region["All"].has(startTriangle): continue
+		if region["All"].has(startTriangle):
+			print("?!")
+			print(startTriangle.edges)
+			region["Blocked"] = false
+			print(len(region["All"]))
+			continue
 		
 		if isCurRegionAtBorder && tCountOfBorderRegions < borderSkipCount:
 			tCountOfBorderRegions += 1

@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://cwfafafmeedcv"]
+[gd_scene load_steps=15 format=3 uid="uid://cwfafafmeedcv"]
 
 [ext_resource type="Script" path="res://Scripts/General/MainManager.gd" id="1_rw1qm"]
 [ext_resource type="Script" path="res://Scripts/General/SceneManager.gd" id="2_jr7ul"]
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://drcrqkrsle6j0" path="res://Scenes/Scenes/world_copy.tscn" id="7_l63vq"]
 [ext_resource type="PackedScene" uid="uid://cas0tm4g1wn4j" path="res://Scenes/Scenes/world_creation_settings.tscn" id="8_7xliv"]
 [ext_resource type="Script" path="res://Scripts/General/GameManager.gd" id="10_wdld2"]
+[ext_resource type="Script" path="res://Scripts/General/InputSystem.gd" id="12_b1f5l"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h67ig"]
 bg_color = Color(0, 0, 0, 1)
@@ -18,11 +19,13 @@ bg_color = Color(0, 0, 0, 1)
 [sub_resource type="FontVariation" id="FontVariation_k7a2x"]
 base_font = ExtResource("5_1tn2y")
 
-[node name="Main" type="Node3D" node_paths=PackedStringArray("MainSceneManager", "Game_Manager", "UI")]
+[node name="Main" type="Node3D" node_paths=PackedStringArray("MainSceneManager", "Game_Manager", "UI", "Input_System", "td_raycast")]
 script = ExtResource("1_rw1qm")
 MainSceneManager = NodePath("MainScenes")
 Game_Manager = NodePath("GameManager")
 UI = NodePath("UI")
+Input_System = NodePath("InputSystem")
+td_raycast = NodePath("RayCast3D")
 
 [node name="UI" type="Control" parent="."]
 layout_mode = 3
@@ -96,3 +99,9 @@ offset_bottom = 79.0
 
 [node name="GameManager" type="Node" parent="."]
 script = ExtResource("10_wdld2")
+
+[node name="InputSystem" type="Node" parent="."]
+script = ExtResource("12_b1f5l")
+
+[node name="RayCast3D" type="RayCast3D" parent="."]
+target_position = Vector3(0, 0, 0)

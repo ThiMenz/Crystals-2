@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://u3e2uiihv3o1"]
+[gd_scene load_steps=17 format=3 uid="uid://u3e2uiihv3o1"]
 
 [ext_resource type="Script" path="res://Scripts/General/SceneManager.gd" id="1_vuy2v"]
 [ext_resource type="PackedScene" uid="uid://7q1jf8jl1add" path="res://Scenes/Scenes/top_down_scene.tscn" id="2_33txy"]
@@ -8,7 +8,7 @@
 [ext_resource type="Script" path="res://Scripts/InGame/World Generation/BiomGenStageInfo.gd" id="5_ls2co"]
 [ext_resource type="Script" path="res://Scripts/InGame/World Generation/BiomInfo.gd" id="6_p4q2w"]
 [ext_resource type="Script" path="res://Scripts/InGame/MultiplayerManager.gd" id="7_08us4"]
-[ext_resource type="Script" path="res://Scripts/InGame/CamScript.gd" id="9_23xmw"]
+[ext_resource type="Script" path="res://Scripts/InGame/TopDownPlayerController.gd" id="10_sbdrw"]
 
 [sub_resource type="Resource" id="Resource_ft777"]
 script = ExtResource("5_ls2co")
@@ -54,16 +54,22 @@ BlockingBorderMultiplier = 0.0
 BlockingBlockedGroupMultiplier = 2.0
 MinFreeNewBorders = 2
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_kq36l"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_j47l5"]
+radius = 0.25
+
 [node name="GameScene" type="Node3D"]
 script = ExtResource("1_vuy2v")
 scenes = {
 "TopDown": ExtResource("2_33txy")
 }
 
-[node name="SimulationManager" type="Node" parent="." node_paths=PackedStringArray("MainCamera", "TerrainGenerator")]
+[node name="SimulationManager" type="Node" parent="." node_paths=PackedStringArray("MainCamera", "TerrainGenerator", "LocalTDController")]
 script = ExtResource("2_u25r1")
-MainCamera = NodePath("../TopDownScene/Camera3D")
+MainCamera = NodePath("../TopDownScene/PlayerSphere/Camera3D")
 TerrainGenerator = NodePath("../TerrainGen")
+LocalTDController = NodePath("../TopDownScene/PlayerSphere")
 
 [node name="TerrainGen" type="Node" parent="."]
 script = ExtResource("3_itdrs")
@@ -77,17 +83,35 @@ script = ExtResource("7_08us4")
 
 [node name="TopDownScene" type="Node3D" parent="."]
 
-[node name="Camera3D" type="Camera3D" parent="TopDownScene"]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 50, 0)
-script = ExtResource("9_23xmw")
-
-[node name="FPSCounter" type="RichTextLabel" parent="TopDownScene/Camera3D"]
-offset_right = 443.0
-offset_bottom = 40.0
-metadata/_edit_use_anchors_ = true
-
 [node name="OmniLight3D" type="OmniLight3D" parent="TopDownScene"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.6983, 22.4278, -26.5438)
 light_energy = 5.338
 omni_range = 4096.0
 omni_attenuation = 0.594604
+
+[node name="StaticBody3D" type="StaticBody3D" parent="TopDownScene"]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -32, 1, -32)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TopDownScene/StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3.33333)
+shape = SubResource("BoxShape3D_kq36l")
+
+[node name="PlayerSphere" type="CSGSphere3D" parent="TopDownScene" node_paths=PackedStringArray("td_shapecast", "td_raycast")]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -32, 0.5, -32)
+script = ExtResource("10_sbdrw")
+td_speed = 12
+td_shapecast = NodePath("ShapeCast3D")
+td_raycast = NodePath("")
+
+[node name="ShapeCast3D" type="ShapeCast3D" parent="TopDownScene/PlayerSphere"]
+visible = false
+shape = SubResource("SphereShape3D_j47l5")
+target_position = Vector3(1, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="TopDownScene/PlayerSphere"]
+transform = Transform3D(0.666667, 0, 0, 0, 0.196027, 0.637195, 0, -0.637195, 0.196027, 0, 8.3797, 2.545)
+
+[node name="FPSCounter" type="RichTextLabel" parent="TopDownScene/PlayerSphere/Camera3D"]
+offset_right = 443.0
+offset_bottom = 40.0
+metadata/_edit_use_anchors_ = true

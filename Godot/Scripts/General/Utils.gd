@@ -6,6 +6,36 @@ const ALMOST_MINUS_INF := -999_999_999_999_999_999
 const P2_30 := 2 ** 30
 const PM2_30 := -(2 ** 30)
 
+
+## Only 143/ms omh
+static func Linecast3D(pStartPos:Vector3, pTargetPos:Vector3) -> Vector3:
+	var pRaycast:RayCast3D = Main.LinecastObj
+	pRaycast.position = pStartPos
+	pRaycast.target_position = pTargetPos
+	pRaycast.force_raycast_update()
+	if !pRaycast.is_colliding(): return pTargetPos
+	return pRaycast.get_collision_point() - pStartPos
+	
+	#print(">>")
+	#print(pRaycast.get_collision_point())
+	#print(pStartPos)
+	#print(pTargetPos)
+	#print(pRaycast.get_collision_point() - pStartPos)
+	
+	## Rounded on 2 decimals, because otherwise floating point issues cause too high values on some specific distances
+	#return floor((pRaycast.get_collision_point() - pStartPos).length() / pTargetPos.length() * 100) / 100.
+
+## Get closest collision safe fraction independent of the physics cycle
+static func GetShapecast3DCCSF(pShapecast:ShapeCast3D, pTargetPos:Vector3) -> float:
+	pShapecast.target_position = pTargetPos
+	pShapecast.force_shapecast_update()
+	return pShapecast.get_closest_collision_safe_fraction()
+
+static func GetAverageVec2(pArr:Array) -> Vector2:
+	var rVec:Vector2 = Vector2(0, 0)
+	for vec in pArr: rVec += vec
+	return rVec / len(pArr)
+	
 static func GetSavableQCTriangleArray(pArr:Dictionary) -> Array[Vector3i]:
 	var rArr : Array[Vector3i] = []
 	for t:QCTriangle in pArr: rArr.append(t.getSaveInfo())
@@ -19,6 +49,12 @@ static func CreateWorldList(worldElmt, worldVBoxContainer):
 			worldVBoxContainer.add_child(elmt)
 			elmt.worldName = worldName
 			elmt.update()
+
+static func GetPosBetweenTwoVec2s(startPoint: Vector2, endPoint: Vector2, shiftVal: float):
+	return startPoint + (endPoint - startPoint) * shiftVal
+	
+static func GetPosBetweenTwoVec3s(startPoint: Vector3, endPoint: Vector3, shiftVal: float):
+	return startPoint + (endPoint - startPoint) * shiftVal
 
 static func Vec2iInBox(vec:Vector2i, minX:int, maxX:int, minY:int, maxY:int) -> bool:
 	return vec.x >= minX && vec.x <= maxX && vec.y >= minY && vec.y <= maxY
