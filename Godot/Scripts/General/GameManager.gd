@@ -6,18 +6,28 @@ static var curWorldName:String = ""
 static var curWorld:Dictionary = {}
 static var worlds:Dictionary
 
+static func deleteGame(pName:String):
+	worlds.erase(pName)
+
 static func getInfosFromSceneArgs() -> Dictionary:
 	var args := Main.M.SceneArgs
 	var infos := {}
 	infos["Name"] = args["WorldName"]
 	infos["Port"] = args["WorldPort"]
 	if args.has("WorldSeed"): infos["Seed"] = args["WorldSeed"]
+	if args.has("WorldAddress"): infos["Address"] = args["WorldAddress"]
 	return infos
 
 func loadNewGame(pInfos:Dictionary):
 	loadGame(initNewGame(pInfos))
+	#var tThread := Thread.new()
+	#tThread.start(loadGame.bind(initNewGame(pInfos)), Thread.PRIORITY_HIGH)
+	#tThread.wait_to_finish()
 
 func initNewGame(pInfos:Dictionary) -> String:
+	
+	if pInfos.has("Address"): return initNewJoinedGame(pInfos)
+	
 	randomize()
 	var rng := RandomNumberGenerator.new()
 	
@@ -29,8 +39,19 @@ func initNewGame(pInfos:Dictionary) -> String:
 	var inputName = pInfos["Name"]
 	var uniqueName = createUniqueName(inputName)
 	worlds[uniqueName] = {
-		"Seed" = rngSeed,
-		"Port" = pInfos["Port"]
+		"Seed": rngSeed,
+		"Port": pInfos["Port"]
+	}
+	
+	return uniqueName
+	
+func initNewJoinedGame(pInfos:Dictionary) -> String:
+	
+	var inputName = pInfos["Name"]
+	var uniqueName = createUniqueName(inputName)
+	worlds[uniqueName] = {
+		"Address": pInfos["Address"],
+		"Port": pInfos["Port"]
 	}
 	
 	return uniqueName
@@ -54,12 +75,31 @@ func copyGame(pWorldName:String) -> String:
 	
 	return tName
 	
+func updateCurWorldDictionary():
+	pass
+	
 func loadGame(pWorldName:String):
 	curWorldName = pWorldName
 	var world:Dictionary = worlds[pWorldName]
 	curWorld = world
-	VRNG.set_seed(world["Seed"])
-	Main.M.UI.unload()
+	Main.World = world
+	
+	Main.M.UI.loadScene("LoadIntoWorld")
 	Main.M.MainSceneManager.loadScene("Game")
-	Main.M.Multiplayer.createServer(world["Port"])
+	
+	if world.has("Address"): 	
+		Main.M.Multiplayer.connectToServer(world["Address"], world["Port"])
+	else: 
+		Main.M.Multiplayer.createServer(world["Port"])
+	
+	if !Main.M.Multiplayer.readyToPlay: return
+	
+	finalizeLoadGame()
+	
+func finalizeLoadGame():
+	Main.M.UI.currentScene.changeStatus("Loading World")
+	
+	VRNG.set_seed(Main.World["Seed"])
 	Main.M.Simulation.beginSimulation()
+	
+	Main.M.UI.unload()

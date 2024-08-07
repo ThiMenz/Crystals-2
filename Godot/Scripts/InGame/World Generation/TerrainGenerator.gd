@@ -372,7 +372,7 @@ func GenerateBasePropertiesOfBiom(initialTriangle:QCTriangle, biomInfo:BiomInfo,
 	# Will also be saved
 	var t = Time.get_ticks_usec()
 	var expansions:Array[QCTriangle] = GetBiomTriangleExpansionStartPoints(subdivs, freeBorderRegions, bbgOutp["All"]) if saveExpansions == null else saveExpansions
-	print(">J>" + str(Time.get_ticks_usec() - t))
+	#print(">J>" + str(Time.get_ticks_usec() - t))
 	#print("BiomBasePropertyGen finished in %ms".format([(Time.get_ticks_usec()-timestamp)/1000.], "%"))
 	
 	return {"Regions":subdivs, "Expansions":expansions, "BBGDict": bbgOutp}
@@ -451,10 +451,7 @@ func RegionBlocking(regions:Array[Dictionary], startTriangle:QCTriangle, general
 			if isCurRegionAtBorder: freeBorderRegionIDs.append(curRegionID)
 			continue
 		if region["All"].has(startTriangle):
-			print("?!")
-			print(startTriangle.edges)
 			region["Blocked"] = false
-			print(len(region["All"]))
 			continue
 		
 		if isCurRegionAtBorder && tCountOfBorderRegions < borderSkipCount:

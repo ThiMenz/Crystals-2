@@ -58,3 +58,4 @@ text = "Join World"
 
 [connection signal="button_down" from="CreateNew" to="." method="_on_create_new_button_down"]
 [connection signal="button_down" from="Back" to="." method="_on_back_button_down"]
+[connection signal="button_down" from="JoinNew" to="." method="_on_join_new_button_down"]

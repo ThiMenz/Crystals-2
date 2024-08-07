@@ -1,0 +1,44 @@
+[gd_scene load_steps=5 format=3 uid="uid://ou1jiggb3j4y"]
+
+[ext_resource type="Script" path="res://Scripts/UI Panel/LoadIntoWorld.gd" id="1_e6srf"]
+[ext_resource type="FontFile" uid="uid://cc30qdd0p2cgs" path="res://Fonts/Gluten-Bold.ttf" id="1_y32ki"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h67ig"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="FontVariation" id="FontVariation_k7a2x"]
+base_font = ExtResource("1_y32ki")
+
+[node name="LoadIntoWorld" type="Panel" node_paths=PackedStringArray("statusLabel")]
+offset_right = 800.0
+offset_bottom = 450.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_h67ig")
+script = ExtResource("1_e6srf")
+statusLabel = NodePath("Label")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -271.0
+offset_top = 172.0
+offset_right = 272.0
+offset_bottom = 232.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.8, 1, 0.847059, 1)
+theme_override_fonts/font = SubResource("FontVariation_k7a2x")
+theme_override_font_sizes/font_size = 41
+text = "Initialising"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Back" type="Button" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 9.0
+offset_right = 77.0
+offset_bottom = 49.0
+text = "Back"
+
+[connection signal="button_down" from="Back" to="." method="_on_back_button_down"]

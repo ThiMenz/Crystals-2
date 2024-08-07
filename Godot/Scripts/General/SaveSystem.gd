@@ -42,5 +42,6 @@ static func EncryptArray(pArr: PackedByteArray, pToken: int) -> PackedByteArray:
 	
 	return rArr
 	
+## 2,5 Mio/sec omh
 static func EncryptByte(pByte: int, pToken: int, pPos: int) -> int:
 	return (pByte ^ (pToken >> int(10. * sin(pPos) + 10.))) & 255

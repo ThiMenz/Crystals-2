@@ -1,14 +1,14 @@
 [gd_scene load_steps=15 format=3 uid="uid://u3e2uiihv3o1"]
 
 [ext_resource type="Script" path="res://Scripts/General/SceneManager.gd" id="1_vuy2v"]
-[ext_resource type="PackedScene" uid="uid://7q1jf8jl1add" path="res://Scenes/Scenes/top_down_scene.tscn" id="2_33txy"]
+[ext_resource type="PackedScene" uid="uid://7q1jf8jl1add" path="res://Legacy/top_down_scene.tscn" id="2_33txy"]
 [ext_resource type="Script" path="res://Scripts/InGame/SimulationManager.gd" id="2_u25r1"]
 [ext_resource type="Script" path="res://Scripts/InGame/World Generation/TerrainGenerator.gd" id="3_itdrs"]
+[ext_resource type="PackedScene" uid="uid://b2403jlamfd3k" path="res://Scenes/Objects/playerSpwn.tscn" id="4_i0hk4"]
 [ext_resource type="PackedScene" uid="uid://xlkrob0qgtfv" path="res://Scenes/Objects/chunkSpwn.tscn" id="4_ip4mw"]
 [ext_resource type="Script" path="res://Scripts/InGame/World Generation/BiomGenStageInfo.gd" id="5_ls2co"]
 [ext_resource type="Script" path="res://Scripts/InGame/World Generation/BiomInfo.gd" id="6_p4q2w"]
 [ext_resource type="Script" path="res://Scripts/InGame/MultiplayerManager.gd" id="7_08us4"]
-[ext_resource type="Script" path="res://Scripts/InGame/TopDownPlayerController.gd" id="10_sbdrw"]
 
 [sub_resource type="Resource" id="Resource_ft777"]
 script = ExtResource("5_ls2co")
@@ -60,11 +60,11 @@ scenes = {
 "TopDown": ExtResource("2_33txy")
 }
 
-[node name="SimulationManager" type="Node" parent="." node_paths=PackedStringArray("TerrainGenerator", "LocalTDPlayerNode", "LocalTDController")]
+[node name="SimulationManager" type="Node" parent="." node_paths=PackedStringArray("TerrainGenerator", "TopDownSceneNode")]
 script = ExtResource("2_u25r1")
 TerrainGenerator = NodePath("../TerrainGen")
-LocalTDPlayerNode = NodePath("../TopDownScene/PlayerSphere")
-LocalTDController = NodePath("../TopDownScene/PlayerSphere")
+TopDownSceneNode = NodePath("../TopDownScene")
+PlayerSpwn = ExtResource("4_i0hk4")
 
 [node name="TerrainGen" type="Node" parent="."]
 script = ExtResource("3_itdrs")
@@ -83,9 +83,3 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.6983, 22.4278, -26.5438)
 light_energy = 5.338
 omni_range = 4096.0
 omni_attenuation = 0.594604
-
-[node name="PlayerSphere" type="CSGSphere3D" parent="TopDownScene" node_paths=PackedStringArray("td_shapecast")]
-transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -32, 0.5, -32)
-script = ExtResource("10_sbdrw")
-td_speed = 12
-td_shapecast = NodePath("")

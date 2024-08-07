@@ -13,7 +13,7 @@ func init_simState(pObj, pType):
 
 func switch_to_goal():
 	prevState._copy(curGoalState)
-	prevState.switch_to_goal()
+	#prevState.switch_to_goal()
 
 func interpolate(delta):
 	prevState.interpolate(curGoalState, delta)

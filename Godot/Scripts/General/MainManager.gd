@@ -22,6 +22,7 @@ static var endingStateMutex := Mutex.new()
 static var SceneArgs := {}
 static var M:Main # This way newly loaded nodes  can access pretty much everything through this object
 static var Inp:InputSystem
+static var World:Dictionary
 
 static var USER_ID := ""
 
@@ -40,11 +41,36 @@ func updateSceneArgs(pArgs:Dictionary):
 	for arg in pArgs: 
 		SceneArgs[arg] = pArgs[arg]
 
+const PFPS:int = 56
+
+static var PROCESS_TIME:float = .0
+static var PHYSICS_TIME:float = .0
+
+static var PHYSICS_AND_PROCESS_OFFSET:float = .0
+
+static var firstP:bool = true
+static var firstPh:bool = true
+
+func _process(delta:float):
+	if firstP:
+		PHYSICS_TIME -= (Time.get_ticks_usec() / 1000000.) - PHYSICS_AND_PROCESS_OFFSET
+		firstP = false
+	
+	PROCESS_TIME += delta
+	
+func _physics_process(delta:float):
+	if firstPh:
+		firstPh = false
+		PHYSICS_AND_PROCESS_OFFSET = Time.get_ticks_usec() / 1000000.
+	
+	PHYSICS_TIME += delta
+
 func _ready():
 	M = self
 	initialSaveSystemLoad()
 	
-	Engine.max_fps = 100
+	Engine.max_fps = 250
+	Engine.physics_ticks_per_second = PFPS
 	
 	UI.loadScene("MainMenu")
 	
