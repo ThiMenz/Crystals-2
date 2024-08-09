@@ -48,7 +48,7 @@ func _on_cancel_button_button_down():
 
 
 func _on_final_delete_button_button_down():
-	Main.M.Game_Manager.deleteGame(Main.SceneArgs["SelectedWorld"])
+	GameManager.deleteGame(Main.SceneArgs["SelectedWorld"])
 	Main.M.UI.goBack()
 
 

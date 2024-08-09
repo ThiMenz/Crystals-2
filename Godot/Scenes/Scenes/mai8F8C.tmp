@@ -1,0 +1,143 @@
+[gd_scene load_steps=25 format=3 uid="uid://cwfafafmeedcv"]
+
+[ext_resource type="Script" path="res://Scripts/General/MainManager.gd" id="1_rw1qm"]
+[ext_resource type="Script" path="res://Scripts/General/SceneManager.gd" id="2_jr7ul"]
+[ext_resource type="PackedScene" uid="uid://c200qprxbvg4w" path="res://Scenes/Scenes/main_menu.tscn" id="3_7fmoq"]
+[ext_resource type="PackedScene" uid="uid://u3e2uiihv3o1" path="res://Scenes/Scenes/game_scene.tscn" id="3_xpool"]
+[ext_resource type="PackedScene" uid="uid://dl60sghuj8ytx" path="res://Scenes/Scenes/world_selection.tscn" id="4_ce1hy"]
+[ext_resource type="FontFile" uid="uid://cc30qdd0p2cgs" path="res://Fonts/Gluten-Bold.ttf" id="5_1tn2y"]
+[ext_resource type="PackedScene" uid="uid://ml6tl8m87613" path="res://Scenes/Scenes/creation_process_selection.tscn" id="5_mr42l"]
+[ext_resource type="PackedScene" uid="uid://bp50ndrq3hnkd" path="res://Scenes/Scenes/basic_world_creation.tscn" id="6_lg37c"]
+[ext_resource type="PackedScene" uid="uid://drcrqkrsle6j0" path="res://Scenes/Scenes/world_copy.tscn" id="7_l63vq"]
+[ext_resource type="PackedScene" uid="uid://cas0tm4g1wn4j" path="res://Scenes/Scenes/world_creation_settings.tscn" id="8_7xliv"]
+[ext_resource type="PackedScene" uid="uid://bfa1sa7r8du4j" path="res://Scenes/Scenes/join_world.tscn" id="9_w6oav"]
+[ext_resource type="PackedScene" uid="uid://ckfit17obpcsi" path="res://Scenes/Scenes/world_menu.tscn" id="10_d0gof"]
+[ext_resource type="Script" path="res://Scripts/General/GameManager.gd" id="10_wdld2"]
+[ext_resource type="PackedScene" uid="uid://ou1jiggb3j4y" path="res://Scenes/Scenes/load_into_world.tscn" id="11_mqwr0"]
+[ext_resource type="Script" path="res://Scripts/General/InputSystem.gd" id="12_b1f5l"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="13_6u0i5"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="14_kpyma"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="15_5nvej"]
+[ext_resource type="Script" path="res://Scripts/General/SaveSystem.gd" id="15_w5f7u"]
+[ext_resource type="Script" path="res://addons/phantom_camera/scripts/resources/camera_3d_resource.gd" id="16_l31sk"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h67ig"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="FontVariation" id="FontVariation_k7a2x"]
+base_font = ExtResource("5_1tn2y")
+
+[sub_resource type="Resource" id="Resource_wy0nb"]
+script = ExtResource("15_5nvej")
+duration = 1.0
+transition = 0
+ease = 2
+
+[sub_resource type="Resource" id="Resource_jd5wa"]
+script = ExtResource("16_l31sk")
+cull_mask = 1048575
+h_offset = 0.0
+v_offset = 0.0
+projection = 0
+fov = 75.0
+size = 1.0
+frustum_offset = Vector2(0, 0)
+near = 0.05
+far = 4000.0
+
+[node name="Main" type="Node3D" node_paths=PackedStringArray("MainSceneManager", "Game_Manager", "UI", "Input_System", "Cam3D", "td_raycast")]
+script = ExtResource("1_rw1qm")
+MainSceneManager = NodePath("MainScenes")
+Game_Manager = NodePath("GameManager")
+UI = NodePath("UI")
+Input_System = NodePath("InputSystem")
+Cam3D = NodePath("PhantomCamera3D")
+td_raycast = NodePath("RayCast3D")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_jr7ul")
+scenes = {
+"BasicWorldInfos": ExtResource("6_lg37c"),
+"CopyWorld": ExtResource("7_l63vq"),
+"CustomWorld": ExtResource("8_7xliv"),
+"JoinWorld": ExtResource("9_w6oav"),
+"LoadIntoWorld": ExtResource("11_mqwr0"),
+"MainMenu": ExtResource("3_7fmoq"),
+"WorldCreationProcess": ExtResource("5_mr42l"),
+"WorldMenu": ExtResource("10_d0gof"),
+"Worlds": ExtResource("4_ce1hy")
+}
+storeSceneHistory = true
+
+[node name="Preset" type="Panel" parent="UI"]
+visible = false
+layout_mode = 0
+offset_right = 800.0
+offset_bottom = 450.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_h67ig")
+
+[node name="Label" type="Label" parent="UI/Preset"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -271.0
+offset_top = 16.0
+offset_right = 272.0
+offset_bottom = 76.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.8, 1, 0.847059, 1)
+theme_override_fonts/font = SubResource("FontVariation_k7a2x")
+theme_override_font_sizes/font_size = 41
+text = "Placeholder"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Back" type="Button" parent="UI/Preset"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 9.0
+offset_right = 77.0
+offset_bottom = 49.0
+text = "Back"
+
+[node name="MainScenes" type="Node3D" parent="."]
+script = ExtResource("2_jr7ul")
+scenes = {
+"Game": ExtResource("3_xpool")
+}
+
+[node name="GameManager" type="Node" parent="."]
+script = ExtResource("10_wdld2")
+
+[node name="SaveSystem" type="Node" parent="."]
+script = ExtResource("15_w5f7u")
+
+[node name="InputSystem" type="Node" parent="."]
+script = ExtResource("12_b1f5l")
+
+[node name="RayCast3D" type="RayCast3D" parent="."]
+target_position = Vector3(0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.348572, 0.937282, 0, -0.937282, 0.348572, 0, 14.89, 5.64)
+
+[node name="PhantomCameraHost" type="Node" parent="Camera3D"]
+script = ExtResource("13_6u0i5")
+
+[node name="PhantomCamera3D" type="Node3D" parent="." node_paths=PackedStringArray("follow_target")]
+transform = Transform3D(1, 0, 0, 0, 0.348572, 0.937282, 0, -0.937282, 0.348572, 0, 14.89, 5.64)
+script = ExtResource("14_kpyma")
+follow_mode = 2
+follow_target = NodePath("..")
+tween_resource = SubResource("Resource_wy0nb")
+tween_on_load = false
+camera_3d_resource = SubResource("Resource_jd5wa")
+follow_offset = Vector3(0, 14.89, 5.64)
+follow_damping = true

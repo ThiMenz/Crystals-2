@@ -38,6 +38,7 @@ func _ready():
 func beginSimulation():
 	var timestamp:float = Time.get_ticks_usec()
 	
+	## Map Init
 	TerrainGenerator.Reset()
 	TerrainGenerator.loadBiomSaveInfosIn(Main.M.Game_Manager.curWorld)
 	TerrainGenerator.simReady()
@@ -47,16 +48,15 @@ func beginSimulation():
 	if len(Main.World["Bioms"]) == 0:
 		TerrainGenerator.BiomInitialisation(TerrainGenerator.get_QC(Vector2i(0,0)).triangle1)
 		
+	## Player Init
 	var worldStartPoint:Vector2 = TerrainGenerator.get_QC(Vector2i(0,0)).triangle1.getMidPoint()
 	var playerSpawnPos:Vector3 = Vector3(worldStartPoint.x - 32, .25, worldStartPoint.y - 32)
-	
 	LocalTDPlayerNode = PlayerManager.spawn_player(Main.M.Multiplayer.multiplayer_id)
-	
 	var storedPosition = PlayerManager.get_player_attribute(Main.USER_ID, "Pos")
 	if storedPosition != null: playerSpawnPos = storedPosition
-	
 	LocalTDPlayerNode.player_ready(playerSpawnPos)
 		
+	## Cam Init
 	Main.M.Cam3D.set_follow_target(LocalTDPlayerNode)
 	
 	print("Simulation setup finished in %ms".format([(Time.get_ticks_usec()-timestamp)/1000.], "%"))	
@@ -93,7 +93,9 @@ func _process(delta):
 func _physics_process(delta:float):
 	if !simulationBegan: return
 	
-	## For consistency this is strictly seperated
+	Main.M.Multiplayer.networkFrameProcess()
+	
+	## For consistency this is strictly separated
 	for simObj in simulationObjects:
 		if simObj.is_multiplayer_authority():
 			simObj.switch_to_goal()

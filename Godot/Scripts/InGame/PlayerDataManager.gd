@@ -24,6 +24,4 @@ static func add_player(userID:String):
 	if !Main.World.has("Players"): Main.World["Players"] = {}
 	if !Main.World["Players"].has(userID): 
 		Main.World["Players"][userID] = {}
-		
-	print(":)")
 	

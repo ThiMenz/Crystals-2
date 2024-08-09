@@ -41,7 +41,7 @@ func updateSceneArgs(pArgs:Dictionary):
 	for arg in pArgs: 
 		SceneArgs[arg] = pArgs[arg]
 
-const PFPS:int = 56
+const PFPS:int = 56 # 56, 28, 14, 7
 
 static var PROCESS_TIME:float = .0
 static var PHYSICS_TIME:float = .0
@@ -68,6 +68,7 @@ func _physics_process(delta:float):
 func _ready():
 	M = self
 	initialSaveSystemLoad()
+	for i in 113: NetworkCUOWA.ALL.append([])
 	
 	Engine.max_fps = 250
 	Engine.physics_ticks_per_second = PFPS

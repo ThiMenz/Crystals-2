@@ -330,7 +330,7 @@ func LoadBiomBorderImpact(startingBorderBaseGridCoords, defaultFNL, pBiomID, pPi
 	for i in 10:
 		var newDijkstraFrontier:Array[Vector2i] = []
 		var tMaxHeight:float = float(i) * 1 #maxHeights[i]
-		var tTextureBlendOffRegion:int = .44 * float(i) * 255
+		var tTextureBlendOffRegion:int = int(.44 * i * 255)
 		var tTextureBlendGround:int = 255 - tTextureBlendOffRegion
 		
 		for tPos:Vector2i in curDijkstraFrontier:

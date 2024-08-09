@@ -25,11 +25,15 @@ var compressionAlgorithm = ENetConnection.COMPRESS_RANGE_CODER
 
 var peer := ENetMultiplayerPeer.new()
 var multiplayer_id = 1
+var custom_peer_id = 0
+var customClientIDDistributor := IDDistributor.new(0, 9)
+var custom_id_dict:Dictionary = {} #(int, int)
+var physic_times:Dictionary = {} #(int(mult_id), float)
+var localNetworkFrame:int = 0
 
 var readyToPlay := false
 
 func _ready():
-	
 	Main.M.Multiplayer = self
 	multiplayer.connected_to_server.connect(connected_to_server)
 	multiplayer.connection_failed.connect(connection_failed)
@@ -37,11 +41,30 @@ func _ready():
 	multiplayer.peer_disconnected.connect(peer_disconnected)
 	multiplayer.server_disconnected.connect(server_disconnected)
 
+func networkFrameProcess():
+	localNetworkFrame += 1
+	
+	## Packets contain constantly updating variables which have a clear authority 
+	send_packet.rpc(multiplayer_id, Main.PHYSICS_TIME, PackedByteArray())
+	
+@rpc("any_peer", "unreliable_ordered", "call_remote")
+func send_packet(multiplayerID:int, authorityTime:float, data:PackedByteArray):
+	physic_times[multiplayerID] = authorityTime
+	
+	multiplayer_print(authorityTime)
+
 func peer_connected(id): ## Called at Server & Clients
 	multiplayer_print("Player Connected: " + str(id))
+	if multiplayer_id == 1:
+		var tNID:int = customClientIDDistributor.newID()
+		custom_id_dict[id] = tNID
+		setCustomPeerIDs.rpc(custom_id_dict)
+		
 	PlayerManager.spawn_player(id)
 
 func peer_disconnected(id): ## Called at Server & Clients
+	if multiplayer_id == 1:
+		customClientIDDistributor.removeID(custom_id_dict[id])
 	multiplayer_print("Player Disconnected: " + str(id))
 
 func connected_to_server(): ## Only from Clients
@@ -62,6 +85,12 @@ func server_disconnected(): ## Only from Clients
 	multiplayer_print("Server Disconnected")
 	
 ##func_ is just the non-static version of a function (so that they can be rpc'ed)
+	
+@rpc("reliable", "authority", "call_local")
+func setCustomPeerIDs(pIDs:Dictionary):
+	custom_id_dict = pIDs
+	custom_peer_id = custom_id_dict[multiplayer_id]
+	multiplayer_print("PeerID: " + str(custom_peer_id))
 	
 @rpc("reliable", "any_peer", "call_local")
 func add_player_(userID:String):
@@ -116,6 +145,8 @@ func createServer(pPort:int):
 	
 	print("Successfully created server :)")
 		
+	custom_peer_id = customClientIDDistributor.newID()
+	custom_id_dict = {1:0}
 	PlayerManager.add_player(Main.USER_ID)
 	peer.host.compress(compressionAlgorithm)
 	multiplayer.multiplayer_peer = peer
