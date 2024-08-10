@@ -4,10 +4,12 @@ var _dataDict:Dictionary = {} #(int, var)
 var _removedIDs:Array[int] = []
 var _curMaxID:int = 0
 var _maxID:int = 0
+var _minID:int = 0
 
 func _init(min_id:int, max_id:int):
 	_curMaxID = min_id - 1
 	_maxID = max_id
+	_minID = min_id
 	
 func newID() -> int:
 	var l_RIDS := len(_removedIDs)
@@ -43,3 +45,6 @@ func getData(pID:int) -> Variant:
 	
 func hasID(pID:int) -> bool:
 	return _dataDict.has(pID)
+	
+func isIDPossible(pID:int) -> bool:
+	return pID >= _minID && pID <= _maxID

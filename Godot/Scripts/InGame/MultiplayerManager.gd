@@ -72,11 +72,15 @@ func networkDestroy(pLocalInst, pDestrData:Array=[]):
 ## NOTE since spawns will not happen as frequently as synchronizations
 ## I am fine with using the build in serialisation methods, which should
 ## result in slightly more network bandwidth
+
+var lastSpawnedInstance:Node
 @rpc("any_peer", "call_local", "reliable")
 func spawn(pSpawnID:int, pNetworkID:int, pInstData:Array=[]):
 	var tInstance = spawnableObjs[pSpawnID].instantiate()
-	var tHasAuthority = localAuthorityObjectIDs.hasID(pNetworkID)
+	lastSpawnedInstance = tInstance
+	var tHasAuthority = localAuthorityObjectIDs.isIDPossible(pNetworkID)
 	tInstance.cuowa.init(pNetworkID, tInstance, tHasAuthority)
+	multiplayer_print(str(pNetworkID) + "|" + str(tHasAuthority))
 	if tHasAuthority:
 		tInstance.set_multiplayer_authority(multiplayer_id)
 	tInstance.on_spawn(pInstData)
@@ -126,8 +130,7 @@ func send_packet(multiplayerID:int, authorityTime:float, data:PackedByteArray):
 		
 		dataPointer += cuowaLen
 
-		
-
+	
 func peer_connected(id): ## Called at Server & Clients
 	multiplayer_print("Player Connected: " + str(id))
 	if multiplayer_id == 1:
@@ -177,10 +180,11 @@ func server_disconnected(): ## Only from Clients
 	multiplayer_print("Server Disconnected")
 	
 func joined_game(): ## equivalent to connected_to_server, but server calls it aswell
-	
-	networkSpawn("Player", [], true)
+	pass
 	
 ##func_ is just the non-static version of a function (so that they can be rpc'ed)
+	
+var localPlayerSpawned := false
 	
 @rpc("reliable", "authority", "call_local")
 func setCustomPeerIDs(pIDs:Dictionary):
@@ -188,6 +192,13 @@ func setCustomPeerIDs(pIDs:Dictionary):
 	custom_peer_id = custom_id_dict[multiplayer_id]
 	localAuthorityObjectIDs = IDDistributor.new(custom_peer_id * 65536, custom_peer_id * 65536 + 65535)
 	multiplayer_print("PeerID: " + str(custom_peer_id))
+	
+	if !localPlayerSpawned: 	
+		networkSpawn("Player", [], true)
+		Main.M.Simulation.LocalTDPlayerNode = lastSpawnedInstance
+		print("!")
+		
+	localPlayerSpawned = true
 	
 @rpc("reliable", "any_peer", "call_local")
 func add_player_(userID:String):
@@ -243,7 +254,7 @@ func createServer(pPort:int):
 	print("Successfully created server :)")
 		
 	custom_peer_id = customClientIDDistributor.newID()
-	custom_id_dict = {1:0}
+	setCustomPeerIDs({1:0})
 	PlayerManager.add_player(Main.USER_ID)
 	peer.host.compress(compressionAlgorithm)
 	multiplayer.multiplayer_peer = peer

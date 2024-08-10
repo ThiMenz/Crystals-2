@@ -12,6 +12,7 @@ class_name TDPlayerController extends SimulationObject
 var cuowa:NetworkCUOWA = TranslationCUOWA.new()
 func on_spawn(data:Array): 
 	cuowa.initCUOWA(self)
+	Main.M.MainSceneManager.currentScene.add_child(self)
 	
 func on_destroy(data:Array): 
 	pass

@@ -23,6 +23,7 @@ func getCUOWA():
 	return rArr
 	
 func updateCUOWA(pData:PackedByteArray, pOffset:int): 
+
 	prevState.set_state()
 	var curOffset := pOffset
 	if syncPosition:
@@ -34,6 +35,9 @@ func updateCUOWA(pData:PackedByteArray, pOffset:int):
 	if syncScale:
 		goalState.scale = decodeVec3(pData, curOffset)
 		curOffset += 12
+		
+	lastChangeTime = Main.PROCESS_TIME
+	
 	
 	
 func interpolateCUOWA():
@@ -41,3 +45,6 @@ func interpolateCUOWA():
 	var delta:float = (Main.PROCESS_TIME - lastChangeTime) / updateInterval
 	
 	obj.position = Utils.GetPosBetweenTwoVec3s(prevState.position, goalState.position, delta)
+
+	if Main.M.Multiplayer.multiplayer_id != 1:
+		print(obj.position)

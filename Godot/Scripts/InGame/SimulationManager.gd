@@ -51,9 +51,10 @@ func beginSimulation():
 	## Player Init
 	var worldStartPoint:Vector2 = TerrainGenerator.get_QC(Vector2i(0,0)).triangle1.getMidPoint()
 	var playerSpawnPos:Vector3 = Vector3(worldStartPoint.x - 32, .25, worldStartPoint.y - 32)
-	LocalTDPlayerNode = PlayerManager.spawn_player(Main.M.Multiplayer.multiplayer_id)
+	#LocalTDPlayerNode = PlayerManager.spawn_player(Main.M.Multiplayer.multiplayer_id)
 	var storedPosition = PlayerManager.get_player_attribute(Main.USER_ID, "Pos")
 	if storedPosition != null: playerSpawnPos = storedPosition
+	
 	LocalTDPlayerNode.player_ready(playerSpawnPos)
 		
 	## Cam Init

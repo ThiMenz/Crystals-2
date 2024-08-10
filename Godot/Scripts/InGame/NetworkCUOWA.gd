@@ -53,8 +53,7 @@ func removeCUOWA(pData:Array):
 	mainObj.queue_free()
 	
 func getCUOWA(): pass
-func updateCUOWA(pData:PackedByteArray, pOffset:int):
-	lastChangeTime = Main.PROCESS_TIME
+func updateCUOWA(pData:PackedByteArray, pOffset:int): pass
 func interpolateCUOWA(): pass
 
 static func decodeVec3(data:PackedByteArray, offset:int=0) -> Vector3:
