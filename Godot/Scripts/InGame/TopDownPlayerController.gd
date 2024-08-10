@@ -9,6 +9,13 @@ class_name TDPlayerController extends SimulationObject
 @export var td_dirPrecision := 32 ## can't be lower than 8 and should be a power of 2
 @export var td_maxDirDeviation := 7 ## should be less than a quarter of td_dirPrecision
 
+var cuowa:NetworkCUOWA = TranslationCUOWA.new()
+func on_spawn(data:Array): 
+	cuowa.initCUOWA(self)
+	
+func on_destroy(data:Array): 
+	pass
+
 var precalcDirs:Array[Vector3] = [] ## goes anti-clockwise
 var precalcKeyInp:Array[int] = [-1, 8, 24, -1, 0, 4, 28, 0, 16, 12, 20, 16, -1, 8, 24, -1] ## for 32 dirs
 var precalcIsDiag:Array[bool] = [false, false, false, false, false, true, true, false, false, true, true, false, false, false, false, false]

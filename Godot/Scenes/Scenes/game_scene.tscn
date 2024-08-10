@@ -75,6 +75,9 @@ randomizationStrength = Vector2(0.25, 0.25)
 
 [node name="MultiplayerManager" type="Node" parent="."]
 script = ExtResource("7_08us4")
+spawnDict = {
+"Player": ExtResource("4_i0hk4")
+}
 
 [node name="TopDownScene" type="Node3D" parent="."]
 

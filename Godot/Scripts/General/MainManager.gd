@@ -68,7 +68,7 @@ func _physics_process(delta:float):
 func _ready():
 	M = self
 	initialSaveSystemLoad()
-	for i in 113: NetworkCUOWA.ALL.append([])
+	for i in 113: NetworkCUOWA.ALL_ORDERED.append([])
 	
 	Engine.max_fps = 250
 	Engine.physics_ticks_per_second = PFPS

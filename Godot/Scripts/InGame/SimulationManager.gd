@@ -89,11 +89,11 @@ func _process(delta):
 	for simObj in simulationObjects:
 		if simObj.is_multiplayer_authority():
 			simObj.interpolate(RelativeTimeUntilNextPhysicsFrame)
+			
+	Main.M.Multiplayer.visualNetworkProcess()
 		
 func _physics_process(delta:float):
 	if !simulationBegan: return
-	
-	Main.M.Multiplayer.networkFrameProcess()
 	
 	## For consistency this is strictly separated
 	for simObj in simulationObjects:
@@ -103,6 +103,7 @@ func _physics_process(delta:float):
 		if simObj.is_multiplayer_authority():
 			simObj.simulation_process(PHYSICS_DELTA)
 		
+	Main.M.Multiplayer.networkFrameProcess()
 	Main.Inp.FrameEndInputManagement()
 		
 func mainThreadTerrainManagement():
