@@ -1,9 +1,19 @@
-[gd_scene load_steps=2 format=3 uid="uid://b2403jlamfd3k"]
+[gd_scene load_steps=4 format=3 uid="uid://b2403jlamfd3k"]
 
 [ext_resource type="Script" path="res://Scripts/InGame/TopDownPlayerController.gd" id="1_ol8lr"]
+[ext_resource type="Script" path="res://Scripts/InGame/TranslationCUOWA.gd" id="2_qvoey"]
 
-[node name="PlayerSphere" type="CSGSphere3D" node_paths=PackedStringArray("Synchronizer")]
+[sub_resource type="Resource" id="Resource_rwx18"]
+script = ExtResource("2_qvoey")
+syncPosition = true
+syncRotation = false
+syncScale = false
+updateRate = 1
+maxExtrapolationDelta = 4.0
+teleportDelta = 8.0
+
+[node name="PlayerSphere" type="CSGSphere3D"]
 transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -32, 0.5, -32)
 script = ExtResource("1_ol8lr")
-Synchronizer = NodePath("")
 td_speed = 12
+cuowa = SubResource("Resource_rwx18")

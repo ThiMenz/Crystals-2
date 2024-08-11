@@ -9,7 +9,7 @@ class_name TDPlayerController extends SimulationObject
 @export var td_dirPrecision := 32 ## can't be lower than 8 and should be a power of 2
 @export var td_maxDirDeviation := 7 ## should be less than a quarter of td_dirPrecision
 
-var cuowa:NetworkCUOWA = TranslationCUOWA.new()
+@export var cuowa:NetworkCUOWA
 func on_spawn(data:Array): 
 	cuowa.initCUOWA(self)
 	Main.M.MainSceneManager.currentScene.add_child(self)

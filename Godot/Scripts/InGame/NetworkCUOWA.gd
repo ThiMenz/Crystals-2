@@ -13,6 +13,9 @@ static var ALL_ORDERED:Array[Array] = []
 
 @export_subgroup("General")
 @export_range(0, 112) var updateRate:int = 3 ## updateRate / 56 = interval in seconds (1 - 112)
+@export var maxExtrapolationDelta:float = 2.
+@export var teleportDelta:float = 5.
+
 var updateInterval:float = .02
 
 var ID:int = 0

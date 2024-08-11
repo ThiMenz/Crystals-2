@@ -38,13 +38,14 @@ func updateCUOWA(pData:PackedByteArray, pOffset:int):
 		
 	lastChangeTime = Main.PROCESS_TIME
 	
-	
-	
 func interpolateCUOWA():
 	## Not hard capped on 1 - that's the extrapolation
 	var delta:float = (Main.PROCESS_TIME - lastChangeTime) / updateInterval
 	
+	if delta > teleportDelta:
+		obj.position = goalState.position
+		return	
+	
+	delta = minf(delta, maxExtrapolationDelta)
+	
 	obj.position = Utils.GetPosBetweenTwoVec3s(prevState.position, goalState.position, delta)
-
-	if Main.M.Multiplayer.multiplayer_id != 1:
-		print(obj.position)

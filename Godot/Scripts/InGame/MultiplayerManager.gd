@@ -77,13 +77,12 @@ var lastSpawnedInstance:Node
 @rpc("any_peer", "call_local", "reliable")
 func spawn(pSpawnID:int, pNetworkID:int, pInstData:Array=[]):
 	var tInstance = spawnableObjs[pSpawnID].instantiate()
-	lastSpawnedInstance = tInstance
 	var tHasAuthority = localAuthorityObjectIDs.isIDPossible(pNetworkID)
+	tInstance.cuowa = tInstance.cuowa.duplicate()
 	tInstance.cuowa.init(pNetworkID, tInstance, tHasAuthority)
-	multiplayer_print(str(pNetworkID) + "|" + str(tHasAuthority))
-	if tHasAuthority:
-		tInstance.set_multiplayer_authority(multiplayer_id)
+	if tHasAuthority: tInstance.set_multiplayer_authority(multiplayer_id)
 	tInstance.on_spawn(pInstData)
+	lastSpawnedInstance = tInstance
 
 @rpc("any_peer", "call_local", "reliable")
 func destroy(pNetworkID:int, pDestrData:Array=[]):
@@ -106,14 +105,19 @@ func networkFrameProcess():
 	for i in cuowaRange:
 		if localNetworkFrame % i == 0: 
 			for cuowa:NetworkCUOWA in NetworkCUOWA.ALL_ORDERED[i]:
+				#multiplayer_print("Auth " + str(cuowa.hasAuthority))
 				if cuowa.hasAuthority: 
 					thisFramePacket.append_array(cuowa.getCUOWA())
+					
+	#multiplayer_print("Send Packet of size " + str(len(thisFramePacket)))
 		
 	send_packet.rpc(multiplayer_id, Main.PHYSICS_TIME, thisFramePacket)
 	
 @rpc("any_peer", "unreliable_ordered", "call_remote")
 func send_packet(multiplayerID:int, authorityTime:float, data:PackedByteArray):
 	physic_times[multiplayerID] = authorityTime
+	
+	#multiplayer_print("Received Packet of size " + str(len(data)))
 	
 	var dataPointer:int = 0
 	var dataLen := len(data)
@@ -193,12 +197,12 @@ func setCustomPeerIDs(pIDs:Dictionary):
 	localAuthorityObjectIDs = IDDistributor.new(custom_peer_id * 65536, custom_peer_id * 65536 + 65535)
 	multiplayer_print("PeerID: " + str(custom_peer_id))
 	
+	multiplayer_print(str(localAuthorityObjectIDs._minID) + " - " + str(localAuthorityObjectIDs._maxID))
+	
 	if !localPlayerSpawned: 	
 		networkSpawn("Player", [], true)
 		Main.M.Simulation.LocalTDPlayerNode = lastSpawnedInstance
-		print("!")
-		
-	localPlayerSpawned = true
+		localPlayerSpawned = true
 	
 @rpc("reliable", "any_peer", "call_local")
 func add_player_(userID:String):
