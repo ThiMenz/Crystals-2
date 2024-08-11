@@ -40,7 +40,8 @@ var peer := ENetMultiplayerPeer.new()
 var multiplayer_id = 1
 var custom_peer_id = 0
 var customClientIDDistributor := IDDistributor.new(0, 9)
-var custom_id_dict:Dictionary = {} #(int, int)
+var custom_id_dict:Dictionary = {} #(int(MultID), int(CustomID))
+var customIDsToMultIDsDict:Dictionary = {} #(int(CustomID), int(MultID))
 var physic_times:Dictionary = {} #(int(mult_id), float)
 var localNetworkFrame:int = 0
 
@@ -81,8 +82,9 @@ func spawn(pSpawnID:int, pNetworkID:int, pInstData:Array=[]):
 	tInstance.cuowa = tInstance.cuowa.duplicate()
 	tInstance.cuowa.init(pNetworkID, tInstance, tHasAuthority)
 	if tHasAuthority: tInstance.set_multiplayer_authority(multiplayer_id)
-	tInstance.on_spawn(pInstData)
 	lastSpawnedInstance = tInstance
+	
+	tInstance.on_spawn(pInstData)
 
 @rpc("any_peer", "call_local", "reliable")
 func destroy(pNetworkID:int, pDestrData:Array=[]):
@@ -140,7 +142,8 @@ func peer_connected(id): ## Called at Server & Clients
 	if multiplayer_id == 1:
 		var tNID:int = customClientIDDistributor.newID()
 		custom_id_dict[id] = tNID
-		setCustomPeerIDs.rpc(custom_id_dict)
+		customIDsToMultIDsDict[tNID] = id
+		setCustomPeerIDs.rpc(custom_id_dict, customIDsToMultIDsDict)
 		
 	## Inform the newly connected peer about relevant objects to spawn
 	for netID:int in delayedClientJoinSpawnObjs:
@@ -170,8 +173,6 @@ func connected_to_server(): ## Only from Clients
 	
 	joined_game()
 	
-	add_player_.rpc(Main.USER_ID)
-	
 	## Fetch World Data from Server
 	var curBiomCount := 0
 	if Main.World.has("Bioms"): curBiomCount = len(Main.World["Bioms"])
@@ -184,29 +185,37 @@ func server_disconnected(): ## Only from Clients
 	multiplayer_print("Server Disconnected")
 	
 func joined_game(): ## equivalent to connected_to_server, but server calls it aswell
-	pass
+	add_player_.rpc(Main.USER_ID, multiplayer_id)
 	
-##func_ is just the non-static version of a function (so that they can be rpc'ed)
+## NOTE func_ is just the non-static version of a function (so that they can be rpc'ed)
 	
 var localPlayerSpawned := false
 	
 @rpc("reliable", "authority", "call_local")
-func setCustomPeerIDs(pIDs:Dictionary):
+func setCustomPeerIDs(pIDs:Dictionary, pRevDict:Dictionary):
 	custom_id_dict = pIDs
 	custom_peer_id = custom_id_dict[multiplayer_id]
+	customIDsToMultIDsDict = pRevDict
 	localAuthorityObjectIDs = IDDistributor.new(custom_peer_id * 65536, custom_peer_id * 65536 + 65535)
 	multiplayer_print("PeerID: " + str(custom_peer_id))
-	
-	multiplayer_print(str(localAuthorityObjectIDs._minID) + " - " + str(localAuthorityObjectIDs._maxID))
 	
 	if !localPlayerSpawned: 	
 		networkSpawn("Player", [], true)
 		Main.M.Simulation.LocalTDPlayerNode = lastSpawnedInstance
 		localPlayerSpawned = true
 	
+@rpc("reliable", "authority", "call_remote")
+func kick():
+	peer.close()
+	
 @rpc("reliable", "any_peer", "call_local")
-func add_player_(userID:String):
-	PlayerManager.add_player(userID)
+func add_player_(userID:String, multiplayerID:int):
+	if PlayerManager.has_player(userID):	
+		if multiplayer_id == 1:
+			kick.rpc_id(multiplayerID)
+		return
+		
+	PlayerManager.add_player(userID, multiplayerID)
 	
 @rpc("reliable", "any_peer", "call_remote")
 func fetch_world_data(multID:int, curBiomCount:int):
@@ -258,8 +267,7 @@ func createServer(pPort:int):
 	print("Successfully created server :)")
 		
 	custom_peer_id = customClientIDDistributor.newID()
-	setCustomPeerIDs({1:0})
-	PlayerManager.add_player(Main.USER_ID)
+	setCustomPeerIDs({1:0}, {0:1})
 	peer.host.compress(compressionAlgorithm)
 	multiplayer.multiplayer_peer = peer
 	

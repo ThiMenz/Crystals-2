@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://dhxcllyy5vl62"]
+
+[ext_resource type="Script" path="res://Scripts/UI Panel/save_file_select_btn.gd" id="1_yla7e"]
+
+[node name="SaveFileSelectBtn" type="Button"]
+text = "Crystals"
+script = ExtResource("1_yla7e")
+
+[connection signal="button_down" from="." to="." method="_on_button_down"]

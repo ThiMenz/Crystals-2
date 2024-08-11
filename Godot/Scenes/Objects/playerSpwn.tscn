@@ -8,9 +8,9 @@ script = ExtResource("2_qvoey")
 syncPosition = true
 syncRotation = false
 syncScale = false
-updateRate = 1
-maxExtrapolationDelta = 4.0
-teleportDelta = 8.0
+updateRate = 3
+maxExtrapolationDelta = 2.0
+teleportDelta = 5.0
 
 [node name="PlayerSphere" type="CSGSphere3D"]
 transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -32, 0.5, -32)

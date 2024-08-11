@@ -1,0 +1,59 @@
+[gd_scene load_steps=6 format=3 uid="uid://dly15mah1m73n"]
+
+[ext_resource type="Script" path="res://Scripts/UI Panel/savefile_select.gd" id="1_cuy7t"]
+[ext_resource type="FontFile" uid="uid://cc30qdd0p2cgs" path="res://Fonts/Gluten-Bold.ttf" id="1_ueuwi"]
+[ext_resource type="PackedScene" uid="uid://dhxcllyy5vl62" path="res://Scenes/Objects/save_file_select_btn.tscn" id="2_bg2nd"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h67ig"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="FontVariation" id="FontVariation_k7a2x"]
+base_font = ExtResource("1_ueuwi")
+
+[node name="SavefileSelect" type="Panel" node_paths=PackedStringArray("VBOXObj")]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -225.0
+offset_right = 400.0
+offset_bottom = 225.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_h67ig")
+script = ExtResource("1_cuy7t")
+VBOXObj = NodePath("VBoxContainer")
+BtnSpwn = ExtResource("2_bg2nd")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -271.0
+offset_top = 16.0
+offset_right = 272.0
+offset_bottom = 76.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.8, 1, 0.847059, 1)
+theme_override_fonts/font = SubResource("FontVariation_k7a2x")
+theme_override_font_sizes/font_size = 41
+text = "Select Savefile"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -139.5
+offset_top = -20.0
+offset_right = 139.5
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2

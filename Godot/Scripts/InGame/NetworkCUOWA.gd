@@ -5,7 +5,7 @@ class_name NetworkCUOWA extends Resource
 
 ## Required variables & methods:
 #var cuowa:NetworkCUOWA
-#func on_spawn(data:Array): pass INCLUDING initCuowa call
+#func on_spawn(data:Array): INCLUDING initCuowa call & add_child
 #func on_destroy(data:Array): pass
 
 static var ALL:Dictionary = {} # (int, NetworkCuowa)

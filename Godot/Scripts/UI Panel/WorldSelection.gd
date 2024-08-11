@@ -4,6 +4,7 @@ extends Panel
 @export var WorldVBoxContainer:Node
 
 func _ready(): #swap to _enter_tree()?
+	PlayerManager.playerObjects.clear()
 	Utils.CreateWorldList(WorldSelectionElement, WorldVBoxContainer)
 	Main.M.worldSelected.connect(on_world_select)
 

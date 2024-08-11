@@ -23,12 +23,11 @@ static var SceneArgs := {}
 static var M:Main # This way newly loaded nodes  can access pretty much everything through this object
 static var Inp:InputSystem
 static var World:Dictionary
+static var SaveFileNames:PackedStringArray
 
 static var USER_ID := ""
 
 func initialSaveSystemLoad():
-	LinecastObj = td_raycast
-	
 	SaveSystem._load()
 	if !SaveSystem.data.has("UserID"): SaveSystem.data["UserID"] = GenerateUserID()
 	if !SaveSystem.data.has("Worlds"): SaveSystem.data["Worlds"] = {}
@@ -67,12 +66,20 @@ func _physics_process(delta:float):
 
 func _ready():
 	M = self
-	initialSaveSystemLoad()
+	LinecastObj = td_raycast
 	for i in 113: NetworkCUOWA.ALL_ORDERED.append([])
-	
 	Engine.max_fps = 250
 	Engine.physics_ticks_per_second = PFPS
 	
+	SaveFileNames = SaveSystem._get_savefile_options()
+	print(SaveFileNames)
+	if len(SaveFileNames) == 1: loadSavefile(SaveFileNames[0])
+	else: UI.loadScene("Savefiles")
+		
+func loadSavefile(pName:String):
+	SaveSystem.FILE_NAME = pName
+	SaveSystem.updateFilePath()
+	initialSaveSystemLoad()
 	UI.loadScene("MainMenu")
 	
 func GenerateUserID() -> String:
@@ -105,8 +112,13 @@ func GetCmdLineArgDict() -> Dictionary:
 	return arguments
 
 func _notification(what):
+	
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		_quit()
+		
+	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		Input_System.FrameEndInputManagement()	
+	
 
 ## Will be called on pretty much every application closure 
 ## Alt+F4, Taskmanager Force Quit, Window "X" and Quit Btn

@@ -8,7 +8,7 @@ class_name InputSystem extends Node
 	"MoveRight"
 ]
 
-## Example Usage: InputSystem.KeyboardActions["Name"].hold
+## Example Usage: Main.M.Inp.ActionDown("")
 var KeyboardActions = { }
 var keyboardActionCount
 

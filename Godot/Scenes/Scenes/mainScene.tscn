@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://cwfafafmeedcv"]
+[gd_scene load_steps=26 format=3 uid="uid://cwfafafmeedcv"]
 
 [ext_resource type="Script" path="res://Scripts/General/MainManager.gd" id="1_rw1qm"]
 [ext_resource type="Script" path="res://Scripts/General/SceneManager.gd" id="2_jr7ul"]
@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://Scripts/General/GameManager.gd" id="10_wdld2"]
 [ext_resource type="PackedScene" uid="uid://ou1jiggb3j4y" path="res://Scenes/Scenes/load_into_world.tscn" id="11_mqwr0"]
 [ext_resource type="Script" path="res://Scripts/General/InputSystem.gd" id="12_b1f5l"]
+[ext_resource type="PackedScene" uid="uid://dly15mah1m73n" path="res://Scenes/Scenes/savefile_select.tscn" id="12_critu"]
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="13_6u0i5"]
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd" id="14_kpyma"]
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="15_5nvej"]
@@ -69,6 +70,7 @@ scenes = {
 "JoinWorld": ExtResource("9_w6oav"),
 "LoadIntoWorld": ExtResource("11_mqwr0"),
 "MainMenu": ExtResource("3_7fmoq"),
+"Savefiles": ExtResource("12_critu"),
 "WorldCreationProcess": ExtResource("5_mr42l"),
 "WorldMenu": ExtResource("10_d0gof"),
 "Worlds": ExtResource("4_ce1hy")

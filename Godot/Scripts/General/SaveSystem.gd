@@ -10,12 +10,28 @@ func _process(delta):
 	pass
 	
 const FILE_DIR := "user://TLM"
-const FILE_NAME := "Crystals"
+static var FILE_NAME := "Crystals"
 static var FILE_PATH := "%/%.tlm".format([FILE_DIR, FILE_NAME], "%")
+static var CUSTOM_MULTIFILE_PATH := "%/Multi.txt".format([FILE_DIR], "%")
 
 static func D(pKey):
 	if data.has(pKey): return data[pKey]
 	return null
+	
+static func updateFilePath():
+	FILE_PATH = "%/%.tlm".format([FILE_DIR, FILE_NAME], "%")
+
+static func _get_savefile_options() -> PackedStringArray:
+	
+	if !DirAccess.dir_exists_absolute(FILE_DIR): DirAccess.make_dir_absolute(FILE_DIR)
+	if !FileAccess.file_exists(CUSTOM_MULTIFILE_PATH):
+		return ["Crystals"]
+	
+	var file = FileAccess.open(CUSTOM_MULTIFILE_PATH, FileAccess.READ)
+	var rArr := file.get_as_text(true).split("\n")
+	file.close()
+	
+	return rArr
 
 static func _save():
 	if !DirAccess.dir_exists_absolute(FILE_DIR): DirAccess.make_dir_absolute(FILE_DIR)

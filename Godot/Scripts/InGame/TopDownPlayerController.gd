@@ -13,9 +13,10 @@ class_name TDPlayerController extends SimulationObject
 func on_spawn(data:Array): 
 	cuowa.initCUOWA(self)
 	Main.M.MainSceneManager.currentScene.add_child(self)
+	PlayerManager.playerObjects[cuowa.authorityCustomClientID] = self
 	
 func on_destroy(data:Array): 
-	pass
+	PlayerManager.playerObjects.erase(cuowa.authorityCustomClientID)
 
 var precalcDirs:Array[Vector3] = [] ## goes anti-clockwise
 var precalcKeyInp:Array[int] = [-1, 8, 24, -1, 0, 4, 28, 0, 16, 12, 20, 16, -1, 8, 24, -1] ## for 32 dirs
