@@ -8,8 +8,9 @@ class_name Main extends Node
 @export var UI:SceneManager
 @export var Input_System:InputSystem
 @export var Cam3D:PhantomCamera3D
-
 @export var td_raycast:RayCast3D
+
+@export var spwnCarrier:SpawnCarrier
 
 var Multiplayer:MultiplayerManager
 var Simulation:SimulationManager
@@ -50,6 +51,18 @@ static var PHYSICS_AND_PROCESS_OFFSET:float = .0
 static var firstP:bool = true
 static var firstPh:bool = true
 
+func _ready():
+	M = self
+	LinecastObj = td_raycast
+	for i in 113: NetworkCUOWA.ALL_ORDERED.append([])
+	Engine.max_fps = 250
+	Engine.physics_ticks_per_second = PFPS
+	
+	SaveFileNames = SaveSystem._get_savefile_options()
+	print(SaveFileNames)
+	if len(SaveFileNames) == 1: loadSavefile(SaveFileNames[0])
+	else: UI.loadScene("Savefiles")
+
 func _process(delta:float):
 	if firstP:
 		PHYSICS_TIME -= (Time.get_ticks_usec() / 1000000.) - PHYSICS_AND_PROCESS_OFFSET
@@ -63,18 +76,6 @@ func _physics_process(delta:float):
 		PHYSICS_AND_PROCESS_OFFSET = Time.get_ticks_usec() / 1000000.
 	
 	PHYSICS_TIME += delta
-
-func _ready():
-	M = self
-	LinecastObj = td_raycast
-	for i in 113: NetworkCUOWA.ALL_ORDERED.append([])
-	Engine.max_fps = 250
-	Engine.physics_ticks_per_second = PFPS
-	
-	SaveFileNames = SaveSystem._get_savefile_options()
-	print(SaveFileNames)
-	if len(SaveFileNames) == 1: loadSavefile(SaveFileNames[0])
-	else: UI.loadScene("Savefiles")
 		
 func loadSavefile(pName:String):
 	SaveSystem.FILE_NAME = pName
@@ -116,6 +117,9 @@ func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		_quit()
 		
+	## Otherwise the typical game bug occurs, where you e.g. don't stop walking
+	## even after tapping in again with the requirement of tapping once in
+	## the SAME direction (which is ofc counterintuitive for most ppl)
 	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		Input_System.FrameEndInputManagement()	
 	

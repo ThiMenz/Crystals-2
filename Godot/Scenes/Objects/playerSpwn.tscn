@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://b2403jlamfd3k"]
+[gd_scene load_steps=5 format=3 uid="uid://b2403jlamfd3k"]
 
 [ext_resource type="Script" path="res://Scripts/InGame/TopDownPlayerController.gd" id="1_ol8lr"]
 [ext_resource type="Script" path="res://Scripts/InGame/TranslationCUOWA.gd" id="2_qvoey"]
@@ -12,8 +12,17 @@ updateRate = 3
 maxExtrapolationDelta = 2.0
 teleportDelta = 5.0
 
+[sub_resource type="SphereShape3D" id="SphereShape3D_313ay"]
+
 [node name="PlayerSphere" type="CSGSphere3D"]
-transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, -32, 0.5, -32)
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0.5, 0)
 script = ExtResource("1_ol8lr")
 td_speed = 12
 cuowa = SubResource("Resource_rwx18")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = SubResource("SphereShape3D_313ay")

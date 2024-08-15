@@ -1,7 +1,9 @@
-[gd_scene load_steps=26 format=3 uid="uid://cwfafafmeedcv"]
+[gd_scene load_steps=29 format=3 uid="uid://cwfafafmeedcv"]
 
 [ext_resource type="Script" path="res://Scripts/General/MainManager.gd" id="1_rw1qm"]
 [ext_resource type="Script" path="res://Scripts/General/SceneManager.gd" id="2_jr7ul"]
+[ext_resource type="Script" path="res://Scripts/General/SpawnCarrier.gd" id="2_xackq"]
+[ext_resource type="PackedScene" uid="uid://c4jv32mhlx21i" path="res://Scenes/Objects/vision_detector.tscn" id="2_xb4un"]
 [ext_resource type="PackedScene" uid="uid://c200qprxbvg4w" path="res://Scenes/Scenes/main_menu.tscn" id="3_7fmoq"]
 [ext_resource type="PackedScene" uid="uid://u3e2uiihv3o1" path="res://Scenes/Scenes/game_scene.tscn" id="3_xpool"]
 [ext_resource type="PackedScene" uid="uid://dl60sghuj8ytx" path="res://Scenes/Scenes/world_selection.tscn" id="4_ce1hy"]
@@ -21,6 +23,10 @@
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/resources/tween_resource.gd" id="15_5nvej"]
 [ext_resource type="Script" path="res://Scripts/General/SaveSystem.gd" id="15_w5f7u"]
 [ext_resource type="Script" path="res://addons/phantom_camera/scripts/resources/camera_3d_resource.gd" id="16_l31sk"]
+
+[sub_resource type="Resource" id="Resource_w8y8h"]
+script = ExtResource("2_xackq")
+VisionDetectionObject = ExtResource("2_xb4un")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h67ig"]
 bg_color = Color(0, 0, 0, 1)
@@ -54,6 +60,7 @@ UI = NodePath("UI")
 Input_System = NodePath("InputSystem")
 Cam3D = NodePath("PhantomCamera3D")
 td_raycast = NodePath("RayCast3D")
+spwnCarrier = SubResource("Resource_w8y8h")
 
 [node name="UI" type="Control" parent="."]
 layout_mode = 3
@@ -123,9 +130,11 @@ script = ExtResource("15_w5f7u")
 
 [node name="InputSystem" type="Node" parent="."]
 script = ExtResource("12_b1f5l")
+KeyboardActionNames = Array[String](["MoveDown", "MoveUp", "MoveLeft", "MoveRight", "Debug"])
 
 [node name="RayCast3D" type="RayCast3D" parent="."]
 target_position = Vector3(0, 0, 0)
+collision_mask = 255
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.348572, 0.937282, 0, -0.937282, 0.348572, 0, 14.89, 5.64)

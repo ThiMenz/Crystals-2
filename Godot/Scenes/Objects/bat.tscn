@@ -1,0 +1,26 @@
+[gd_scene load_steps=6 format=3 uid="uid://chyieeqeio5rh"]
+
+[ext_resource type="Script" path="res://Scripts/InGame/Enemy_Bat.gd" id="1_jysvl"]
+[ext_resource type="Script" path="res://Scripts/InGame/VisionTypeInfo.gd" id="2_mlrd8"]
+[ext_resource type="Script" path="res://Scripts/InGame/TranslationCUOWA.gd" id="3_64ay4"]
+
+[sub_resource type="Resource" id="Resource_1qgjw"]
+script = ExtResource("2_mlrd8")
+type = 1
+radius = 13.0
+
+[sub_resource type="Resource" id="Resource_we0yd"]
+script = ExtResource("3_64ay4")
+syncPosition = true
+syncRotation = false
+syncScale = false
+updateRate = 3
+maxExtrapolationDelta = 2.0
+teleportDelta = 5.0
+
+[node name="Bat" type="CSGBox3D" node_paths=PackedStringArray("visionParent")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -33.3853, 0, -59.9134)
+script = ExtResource("1_jysvl")
+visionArray = Array[ExtResource("2_mlrd8")]([SubResource("Resource_1qgjw")])
+visionParent = NodePath(".")
+cuowa = SubResource("Resource_we0yd")

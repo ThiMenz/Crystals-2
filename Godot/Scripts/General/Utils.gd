@@ -50,6 +50,11 @@ static func CreateWorldList(worldElmt, worldVBoxContainer):
 			elmt.worldName = worldName
 			elmt.update()
 
+## This is my own formula, but that one should work ;)
+static func GetClosestVec2OnLine(lineStart:Vector2, lineEnd:Vector2, pos:Vector2):
+	var dirVec:Vector2 = lineEnd - lineStart	
+	return lineStart + (-dirVec * (lineStart - pos)) / dirVec.length_squared() * dirVec
+
 static func GetPosBetweenTwoVec2s(startPoint: Vector2, endPoint: Vector2, shiftVal: float):
 	return startPoint + (endPoint - startPoint) * shiftVal
 	
@@ -59,8 +64,14 @@ static func GetPosBetweenTwoVec3s(startPoint: Vector3, endPoint: Vector3, shiftV
 static func Vec2iInBox(vec:Vector2i, minX:int, maxX:int, minY:int, maxY:int) -> bool:
 	return vec.x >= minX && vec.x <= maxX && vec.y >= minY && vec.y <= maxY
 
+static func ConvertVec2ToVec3(vec:Vector2, yOffset:float=0.0):
+	return Vector3(vec.x, yOffset, vec.y)
+
 static func GetVec2iNeighbors(vec:Vector2i) -> Array[Vector2i]:
 	return [vec+Vector2i(1,0), vec-Vector2i(1,0), vec+Vector2i(0,1), vec-Vector2i(0,1)]
+	
+static func GetVec2i4UnderneathNeighbors(vec:Vector2i) -> Array[Vector2i]:
+	return [vec+Vector2i(1,0), vec+Vector2i(1,1), vec+Vector2i(0,1), vec+Vector2i(-1,1)]
 
 static func Vec2iTriangleSign(p1:Vector2i, p2:Vector2i, p3:Vector2i) -> float:
 	return (p1.x-p3.x) * (p2.y-p3.y) - (p2.x-p3.x) * (p1.y-p3.y)

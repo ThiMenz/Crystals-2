@@ -14,6 +14,11 @@ class_name SimulationManager extends Node
 @export var TopDownSceneNode:Node
 @export var PlayerSpwn:PackedScene
 
+enum SimStateTypes { Player }
+static var SimStateTypeDict:Dictionary = {
+	SimStateTypes.Player : PlayerSimState
+}
+
 var LocalTDPlayerNode:Node
 
 static var ChunkManager:TerrainChunkManager = TerrainChunkManager.new()
@@ -95,6 +100,9 @@ func _process(delta):
 		
 func _physics_process(delta:float):
 	if !simulationBegan: return
+	
+	if Main.Inp.ActionDown("Debug"):
+		Main.M.Multiplayer.networkSpawn("Enemy_Bat", [LocalTDPlayerNode.position + Vector3(3., 0., 3.)])
 	
 	## For consistency this is strictly separated
 	for simObj in simulationObjects:

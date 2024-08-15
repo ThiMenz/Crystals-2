@@ -12,7 +12,7 @@ class_name MultiplayerManager extends Node
 
 ## TODO
 ## 3. Exceptions don't cause more ones (regarding the Multiplayer Client / Server Creation)
-## Mutliplayer Node does not exist error :(
+## Mutliplayer Node does not exist error :( & !pInfo-Error
 
 ##Temporary Address & Port
 var address := "127.0.0.1"
@@ -219,7 +219,6 @@ func add_player_(userID:String, multiplayerID:int):
 	
 @rpc("reliable", "any_peer", "call_remote")
 func fetch_world_data(multID:int, curBiomCount:int):
-	multiplayer_print(curBiomCount)
 	var tWorld:Dictionary = Main.World.duplicate(false)
 	tWorld.erase("Bioms")
 	tWorld.erase("Port")

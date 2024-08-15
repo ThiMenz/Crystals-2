@@ -2,11 +2,13 @@ class_name MapGen extends Node
 
 const MAP_GEN_VERSION:int = 1 #1st = 1
 
-@export var terrainObject:HTerrain
+#@export var terrainObject:HTerrain
 @export var terrainSpwn:PackedScene
 @export var TestBiomInfo:BiomInfo
 @export var BiomProperties:Array[BiomInfo]
 @export var randomizationStrength : Vector2
+
+var pathfinder := AStar2D.new() 
 
 static var chunkAABB_YValue = -10
 static var defaultTerrainFNL:FastNoiseLite = FastNoiseLite.new()
@@ -117,7 +119,7 @@ func BiomThreadFunction():
 			UnloadBiom(unloadID)
 			
 		if firstID != -1: 
-			LoadBiom(firstID)
+			LoadBiom(firstID, true) ## TODO SET ON FALSE LATER!!!
 				
 		biomThreadTick += 1
 		OS.delay_usec(500) # To ensure that the tick count can't realistically reach 2^63 and overload
@@ -135,7 +137,7 @@ func BiomInitialisation(pEntry:QCTriangle):
 func GenerateBiomType() -> int:
 	return 0
 
-func LoadBiom(pBiomID:int):
+func LoadBiom(pBiomID:int, pLoadPathfinder:bool):
 	var biom:Dictionary = biomSaveInfos[pBiomID]
 	var tBiomBorder:Dictionary = biomBorders[pBiomID]
 	
@@ -149,15 +151,46 @@ func LoadBiom(pBiomID:int):
 		biom["BiomID"]
 	)
 	
-	# Not necessary, because that will be loaded in the BBG
-	# for bt:QCTriangle in tBiomBorder: allBiomBorders[bt] = true
+	if pLoadPathfinder: LoadPathfinder(pBiomID)
+	
+	# Not necessary, because that will be loaded in the BBG: for bt:QCTriangle in tBiomBorder: allBiomBorders[bt] = true
+	
+func LoadPathfinder(pBiomID:int):
+	assert(bioms.has(pBiomID), "Tried to load pathfinder for unloaded biom!")
+	
+	pathfinder.clear()
+	var tDict:Dictionary = {} #Vector2i, int
+	var a:int = 0
+	for coord:Vector2i in bioms[pBiomID]["InnerBaseGridCoords"]:
+		pathfinder.add_point(a, coord - Vector2i(32, 32))
+		tDict[coord] = a
+		a += 1
+	
+	a = 0
+	for coord:Vector2i in bioms[pBiomID]["InnerBaseGridCoords"]:
+		for neighbor:Vector2i in Utils.GetVec2i4UnderneathNeighbors(coord):
+			if tDict.has(neighbor): 
+				pathfinder.connect_points(a, tDict[neighbor])
+			
+		a += 1
+		
+func DebugPathfinder():
+	for pointID:int in pathfinder.get_point_ids():
+		var point:Vector3 = Utils.ConvertVec2ToVec3(pathfinder.get_point_position(pointID), .8)
+		for neighbor:int in pathfinder.get_point_connections(pointID):
+			var point2:Vector3 = Utils.ConvertVec2ToVec3(pathfinder.get_point_position(neighbor), .8)
+			DebugDraw3D.draw_line(
+				point,
+				point2,
+				Color(1, 1, 0)
+			)
 	
 func UnloadBiom(pBiomID:int):
 	var biom:Dictionary = bioms[pBiomID]
 	var tUnloadArray:Array[Vector2i] = []
 	var pPixelDict:Dictionary = TerrainPixelManager.pixel.duplicate(true)
 	
-	for tPos:Vector2i in biom["AllBaseGridCoords"]:
+	for tPos:Vector2i in biom["AllIncludingBlocked"]:
 		if !pPixelDict.has(tPos): continue
 		
 		var tPxl:TerrainPixelInfo = pPixelDict[tPos]
@@ -189,6 +222,7 @@ func GenerateBiom(pBiomIDPar:int, pRngSeed:int, pMapGenVersion:int, pEntry:QCTri
 	
 	var biomDict:Dictionary = GenerateBasePropertiesOfBiom(pEntry, pBiomInfo, null)
 	var allBaseGridCoords:Dictionary = {}
+	var allBaseGridCoordsIncludingBlocked:Dictionary = {}
 	
 	var pixelUpdates:Dictionary = {}
 	var requiredChunkUpdates:Dictionary = {}
@@ -201,11 +235,10 @@ func GenerateBiom(pBiomIDPar:int, pRngSeed:int, pMapGenVersion:int, pEntry:QCTri
 		#print((Time.get_ticks_usec()-timestamp)/1000.)
 		#print(len(region["All"]))
 		var tRegionBlocked:bool = region["Blocked"]
-		if tRegionBlocked: continue
-		#if region["Blocked"]: continue
 		for triangle:QCTriangle in region["All"]:
 			for point:Vector2i in triangle.getInnerBaseGridCoords():
-				allBaseGridCoords[point] = tRegionBlocked
+				allBaseGridCoordsIncludingBlocked[point] = tRegionBlocked
+				if !tRegionBlocked: allBaseGridCoords[point] = tRegionBlocked
 				#SetTerrainHeight(point, 0)
 	
 	#print("!!!")
@@ -269,9 +302,10 @@ func GenerateBiom(pBiomIDPar:int, pRngSeed:int, pMapGenVersion:int, pEntry:QCTri
 	#			
 	#	curDijkstraFrontier = newDijkstraFrontier
 	
+	allBaseGridCoordsIncludingBlocked.merge(allBaseGridCoords)
 	biomDict["InnerBaseGridCoords"] = tInnerCoords
 	biomDict["AllBaseGridCoords"] = allBaseGridCoords
-	#biomDict["OuterBaseGridCoords"] = biomBorderBaseGridCoords
+	biomDict["AllIncludingBlocked"] = allBaseGridCoordsIncludingBlocked
 	biomDict["BorderCoords"] = tBorderCoords
 	
 	var tBounds:Vector4i = Vector4i(Utils.P2_30, Utils.PM2_30, Utils.P2_30, Utils.PM2_30)

@@ -1,7 +1,7 @@
 class_name PlayerSimState
 
-var obj: Node
 var position: Vector3
+var obj: Node
 
 func _init(pObj):
 	obj = pObj

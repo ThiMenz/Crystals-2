@@ -2,8 +2,6 @@ class_name TDPlayerController extends SimulationObject
 
 ## TODO Controller Support (requires InputSystem upgrade)
 
-@export var Synchronizer:MultiplayerSynchronizer
-
 @export var td_speed := 5
 
 @export var td_dirPrecision := 32 ## can't be lower than 8 and should be a power of 2
