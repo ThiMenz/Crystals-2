@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://u3e2uiihv3o1"]
+[gd_scene load_steps=19 format=3 uid="uid://u3e2uiihv3o1"]
 
 [ext_resource type="Script" path="res://Scripts/General/SceneManager.gd" id="1_vuy2v"]
 [ext_resource type="Script" path="res://Scripts/InGame/SimulationManager.gd" id="2_u25r1"]
@@ -9,6 +9,9 @@
 [ext_resource type="Script" path="res://Scripts/InGame/World Generation/BiomInfo.gd" id="6_p4q2w"]
 [ext_resource type="Script" path="res://Scripts/InGame/MultiplayerManager.gd" id="7_08us4"]
 [ext_resource type="PackedScene" uid="uid://chyieeqeio5rh" path="res://Scenes/Objects/bat.tscn" id="9_s1npi"]
+[ext_resource type="Script" path="res://Scripts/InGame/AttackBase.gd" id="10_m23xx"]
+[ext_resource type="PackedScene" uid="uid://7wgays2yu0cf" path="res://Scenes/Objects/magic_slash.tscn" id="10_ppi4j"]
+[ext_resource type="Script" path="res://Scripts/InGame/AttackInfo.gd" id="11_es2sy"]
 
 [sub_resource type="Resource" id="Resource_ft777"]
 script = ExtResource("5_ls2co")
@@ -54,6 +57,13 @@ BlockingBorderMultiplier = 0.0
 BlockingBlockedGroupMultiplier = 2.0
 MinFreeNewBorders = 2
 
+[sub_resource type="Resource" id="Resource_lxcqh"]
+script = ExtResource("11_es2sy")
+neutralDmg = 90
+natureDmg = 0
+fireDmg = 50
+magicDmg = 0
+
 [node name="GameScene" type="Node3D"]
 script = ExtResource("1_vuy2v")
 
@@ -74,6 +84,7 @@ randomizationStrength = Vector2(0.25, 0.25)
 script = ExtResource("7_08us4")
 spawnDict = {
 "Enemy_Bat": ExtResource("9_s1npi"),
+"MagicSlash": ExtResource("10_ppi4j"),
 "Player": ExtResource("4_i0hk4")
 }
 
@@ -84,3 +95,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.6983, 22.4278, -26.5438)
 light_energy = 5.338
 omni_range = 4096.0
 omni_attenuation = 0.594604
+script = ExtResource("10_m23xx")
+playerDmg = SubResource("Resource_lxcqh")

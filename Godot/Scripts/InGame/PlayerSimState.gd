@@ -15,3 +15,4 @@ func set_state(pPosition):
 
 func interpolate(pGoalState, pDelta):
 	obj.position = Utils.GetPosBetweenTwoVec3s(position, pGoalState.position, pDelta)
+		

@@ -90,7 +90,6 @@ defaultSceneHirachy = {
 "WorldMenu": "Worlds",
 "Worlds": "MainMenu"
 }
-storeSceneHistory = true
 
 [node name="Preset" type="Panel" parent="UI"]
 visible = false

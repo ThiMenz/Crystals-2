@@ -1,12 +1,6 @@
 class_name EnemyBase extends SimulationObject
 
-@export_subgroup("Vision")
-@export var visionArray:Array[VisionTypeInfo] ## Index 0 = Highest Priority
-@export var visionParent:Node
-
-enum AttackType {CRYSTAL, PLAYER, BUILDING}
-
-@onready var pathfinder := Main.M.Simulation.TerrainGenerator.pathfinder
+@export var hpContainer:HPContainer
 
 #region | NETWORKING |
 
@@ -15,15 +9,21 @@ enum AttackType {CRYSTAL, PLAYER, BUILDING}
 @export var simStateType:SimulationManager.SimStateTypes
 
 func spawn_setup(data:Array): 
+	maxForceFollowDistance *= maxForceFollowDistance
 	self.position = data[0]
 	init_simState(self, SimulationManager.SimStateTypeDict[simStateType])
 	initVision()
 	cuowa.initCUOWA(self)
 	Main.M.MainSceneManager.currentScene.add_child(self)
 
+func on_spawn(data:Array): print("CALLBACK CATCH")
+func on_destroy(data:Array): print("CALLBACK CATCH")
+
 #endregion
 	
 #region | PATHFINDING |
+
+@onready var pathfinder := Main.M.Simulation.TerrainGenerator.pathfinder
 
 var path:PackedVector2Array
 var pathLength := 0 ## In reality len() - 1
@@ -72,6 +72,13 @@ func updatePath():
 	
 #region | VISION |
 
+@export_subgroup("Vision & Targetting")
+@export var visionArray:Array[VisionTypeInfo] ## Index 0 = Highest Priority
+@export var visionParent:Node
+@export var maxForceFollowDistance:float
+
+enum AttackType {CRYSTAL, PLAYER, BUILDING}
+
 var visionObjects:Array[Node] = []
 var curTarget:Node = null
 
@@ -82,10 +89,13 @@ func initVision(): ##0.5ms omh
 		var tVD:Node = vd_obj.instantiate()
 		visionParent.add_child(tVD)
 		visionObjects.append(tVD)
-		tVD.set_radius(typeInfo.radius)
+		tVD.set_radius(typeInfo.radius / visionParent.scale.x)
 		tVD.set_type(typeInfo.type)
 
 func updateTarget():
+	if curTarget != null && obj.curGoalState.position.distance_squared_to(
+		curTarget.global_position) < maxForceFollowDistance: return
+	
 	curTarget = null
 	for visionObj:VisionDetector in visionObjects:
 		var tTarget := visionObj.get_closest_collider_to(visionParent.global_position)

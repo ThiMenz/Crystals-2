@@ -42,6 +42,7 @@ func _ready():
 	
 func beginSimulation():
 	var timestamp:float = Time.get_ticks_usec()
+	Frame = 0
 	
 	## Map Init
 	TerrainGenerator.Reset()
@@ -84,7 +85,7 @@ func _process(delta):
 	Frame += 1
 	RelativeTimeUntilNextPhysicsFrame = clamp((Main.PROCESS_TIME - Main.PHYSICS_TIME) / PHYSICS_DELTA, 0, 1)
 	if !StateInterpolationEnabled: RelativeTimeUntilNextPhysicsFrame = 1
-		
+	
 	mainThreadTerrainManagement() ## I'm concerned with moving it to only nonPlatformingMode
 	
 	if inPlatformingMode:
@@ -92,11 +93,12 @@ func _process(delta):
 	else:
 		ChunkManager.FrameProcess(LocalTDPlayerNode.position)
 
-	for simObj in simulationObjects:
-		if simObj.is_multiplayer_authority():
-			simObj.interpolate(RelativeTimeUntilNextPhysicsFrame)
+	if multiplayer.multiplayer_peer != null:
+		for simObj in simulationObjects:
+			if simObj.is_multiplayer_authority():
+				simObj.interpolate(RelativeTimeUntilNextPhysicsFrame)
 			
-	Main.M.Multiplayer.visualNetworkProcess()
+		Main.M.Multiplayer.visualNetworkProcess()
 		
 func _physics_process(delta:float):
 	if !simulationBegan: return

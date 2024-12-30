@@ -4,6 +4,11 @@ static var playerMultiplayerIDs := {} #string(UserID) : int(ServerID)
 static var playerUserIDs := {} #int(MultiplayerID) : string(UserID)
 static var playerObjects := {}
 
+static func clear_players():
+	playerMultiplayerIDs.clear()
+	playerUserIDs.clear()
+	playerObjects.clear()
+
 static func get_player(userID:String) -> Dictionary:
 	assert(Main.World["Players"].has(userID), "This Player does not exist!")
 	return Main.World["Players"][userID]
@@ -15,6 +20,11 @@ static func get_player_attribute(userID:String, attribute:String):
 
 static func has_player(userID:String) -> bool:
 	return playerMultiplayerIDs.has(userID)
+	
+static func remove_player(multID:int):
+	if playerUserIDs.has(multID) and playerMultiplayerIDs.has(playerUserIDs[multID]):
+		playerMultiplayerIDs.erase(playerUserIDs[multID])
+		playerUserIDs.erase(multID)
 
 static func add_player(userID:String, multID:int):
 	playerUserIDs[multID] = userID
@@ -38,5 +48,3 @@ static func update_player_storages():
 			continue
 		
 		playerDict["Pos"] = playerObjects[customClientID].cuowa.goalState.position
-		
-	

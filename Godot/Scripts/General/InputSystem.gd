@@ -35,7 +35,12 @@ func FrameEndInputManagement():
 		if (KeyboardActions[itKeyboardAction].up != .0):
 			KeyboardActions[itKeyboardAction].up = 0.
 			KeyboardActions[itKeyboardAction].hold = 0.
-			
+		
+func ResetAllInputs():
+	for itKeyboardAction in KeyboardActionNames:
+		KeyboardActions[itKeyboardAction].down = 0.
+		KeyboardActions[itKeyboardAction].up = 0.
+		KeyboardActions[itKeyboardAction].hold = 0.
 	
 ## On Input Event:
 ## Check every ActionName for Release / Press Down

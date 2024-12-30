@@ -12,6 +12,8 @@ class_name Main extends Node
 
 @export var spwnCarrier:SpawnCarrier
 
+@export var MNode:Node3D
+
 var Multiplayer:MultiplayerManager
 var Simulation:SimulationManager
 
@@ -65,8 +67,9 @@ func _ready():
 
 func _process(delta:float):
 	if firstP:
-		PHYSICS_TIME -= (Time.get_ticks_usec() / 1000000.) - PHYSICS_AND_PROCESS_OFFSET
+		#PHYSICS_TIME -= (Time.get_ticks_usec() / 1000000.) - PHYSICS_AND_PROCESS_OFFSET
 		firstP = false
+		#print((Time.get_ticks_usec() / 1000000.) - PHYSICS_AND_PROCESS_OFFSET)
 	
 	PROCESS_TIME += delta
 	
@@ -74,6 +77,7 @@ func _physics_process(delta:float):
 	if firstPh:
 		firstPh = false
 		PHYSICS_AND_PROCESS_OFFSET = Time.get_ticks_usec() / 1000000.
+		#print(PHYSICS_AND_PROCESS_OFFSET)
 	
 	PHYSICS_TIME += delta
 		
@@ -118,10 +122,10 @@ func _notification(what):
 		_quit()
 		
 	## Otherwise the typical game bug occurs, where you e.g. don't stop walking
-	## even after tapping in again with the requirement of tapping once in
+	## even after tabbing in again with the requirement of tapping once in
 	## the SAME direction (which is ofc counterintuitive for most ppl)
 	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT:
-		Input_System.FrameEndInputManagement()	
+		Input_System.ResetAllInputs()	
 	
 
 ## Will be called on pretty much every application closure 
@@ -134,6 +138,9 @@ func _quit():
 	get_tree().quit()
 	
 func stopBiomThread():
+	
+	if Main.M.Simulation == null or Main.M.Simulation.thread == null: return
+	
 	endingStateMutex.lock()
 	if endingState == 3:
 		endingState = 1
@@ -145,5 +152,7 @@ func stopBiomThread():
 			endingStateMutex.unlock()
 	else: endingStateMutex.unlock()
 	endingState = 0
+	
+	if Main.M.Simulation.thread.is_started(): Main.M.Simulation.thread.wait_to_finish()
 	
 signal worldSelected(worldName)

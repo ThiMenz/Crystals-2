@@ -23,6 +23,7 @@ func FrameProcessAandBRings(ring:Dictionary, returnAfterOneLoad:bool) -> bool:
 			continue
 
 		var curLowestFrameChunk:TerrainChunk = getMostIrrelevantLoadedMainLoopChunk()
+		if curLowestFrameChunk == null: return false
 		renderedChunks.erase(curLowestFrameChunk.chunkPos)
 		curLowestFrameChunk.UpdatePosition(chunkVec)	
 		renderedChunks[chunkVec] = SimulationManager.Frame
@@ -61,6 +62,8 @@ func FrameProcess(pPlayerPos:Vector3):
 			
 		var curLowestFrameChunk:TerrainChunk = getMostIrrelevantLoadedMainLoopChunk()
 		
+		if curLowestFrameChunk == null: return
+		
 		renderedChunks.erase(curLowestFrameChunk.chunkPos)
 		curLowestFrameChunk.UpdatePosition(nextLoad)	
 		nextFrameProcessChunk = curLowestFrameChunk
@@ -98,6 +101,12 @@ func getMostIrrelevantLoadedMainLoopChunk() -> TerrainChunk:
 func InitializeMainLoopChunks():
 	for i in MainLoopChunkCount: 
 		mainLoopChunks.append(TerrainChunk.new(Vector2i(i+2048,0)))
+	
+func ClearMainLoopChunks():
+	nextFrameProcessChunk = null
+	renderedChunks.clear()
+	forceLoadedChunks.clear()
+	mainLoopChunks.clear()
 	
 func ForceLoadBiom():
 	# Ich muss hier an die schon geladenen Chunks denken

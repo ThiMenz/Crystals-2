@@ -71,6 +71,9 @@ func simulation_process(delta:float):
 				tBestVec = tACLVec
 				tFoundDir = true
 				break
+				
+	if Main.Inp.ActionDown("MouseL"):
+		Main.M.Multiplayer.networkSpawn("MagicSlash", [framePos])
 
 	if tFoundDir:
-		curGoalState.set_state(framePos + tBestVec) 
+		curGoalState.set_state(framePos + tBestVec)

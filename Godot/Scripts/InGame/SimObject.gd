@@ -19,3 +19,6 @@ func interpolate(delta):
 	prevState.interpolate(curGoalState, delta)
 	
 func simulation_process(delta:float): pass
+
+func _exit_tree():
+	Main.M.Simulation.simulationObjects.erase(self)

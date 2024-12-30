@@ -7,6 +7,8 @@ func _ready(): #swap to _enter_tree()?
 	PlayerManager.playerObjects.clear()
 	Utils.CreateWorldList(WorldSelectionElement, WorldVBoxContainer)
 	Main.M.worldSelected.connect(on_world_select)
+	
+	multiplayer.multiplayer_peer = null
 
 func on_world_select(name:String):
 	Main.M.SceneArgs["SelectedWorld"] = name

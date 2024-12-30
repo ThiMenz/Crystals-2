@@ -92,6 +92,7 @@ func loadGame(pWorldName:String):
 	else: 
 		Main.M.Multiplayer.createServer(world["Port"])
 	
+	## TODO since this is instantly checked - idk for sure if this works when connecting through WAN
 	if !Main.M.Multiplayer.readyToPlay: return
 	
 	finalizeLoadGame()

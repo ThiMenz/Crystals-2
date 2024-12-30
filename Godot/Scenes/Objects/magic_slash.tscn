@@ -1,0 +1,119 @@
+[gd_scene load_steps=16 format=3 uid="uid://7wgays2yu0cf"]
+
+[ext_resource type="Script" path="res://Scripts/InGame/AttackBase.gd" id="1_jxx2m"]
+[ext_resource type="Shader" path="res://Other/magic_slash.gdshader" id="1_saqkm"]
+[ext_resource type="Script" path="res://Scripts/InGame/NetworkCUOWA.gd" id="2_n2t3b"]
+[ext_resource type="Texture2D" uid="uid://kblg5jh7wawm" path="res://Sprites/FirstTrySlash.png" id="2_sfdta"]
+
+[sub_resource type="Curve" id="Curve_wmnnw"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.09999, 0), 0.0, 0.0, 0, 0, Vector2(0.1, 1), 0.0, 0.0, 0, 0, Vector2(0.2, 1), 0.0, 0.0, 0, 0, Vector2(0.7, 0), 0.0, 0.0, 0, 0, Vector2(0.70001, 0), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 7
+metadata/_snap_enabled = true
+
+[sub_resource type="CurveTexture" id="CurveTexture_lj480"]
+width = 512
+texture_mode = 1
+curve = SubResource("Curve_wmnnw")
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_mlhfm"]
+load_path = "res://.godot/imported/MagicSlashFadeMask.png-1d860e61ff038ecbfea82878b3c45977.s3tc.ctex"
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_qlfkf"]
+frequency = 0.0257
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_i4q68"]
+noise = SubResource("FastNoiseLite_qlfkf")
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_652ou"]
+load_path = "res://.godot/imported/MagicSlash.png-6c5d2871567eaa51c3ba04bc24355fa6.s3tc.ctex"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mlpg1"]
+resource_local_to_scene = true
+render_priority = 0
+shader = ExtResource("1_saqkm")
+shader_parameter/albedo = Color(0.835294, 0.886275, 0.67451, 1)
+shader_parameter/distortion_intensity = 0.05
+shader_parameter/distortion_tiling = Vector2(1, 1)
+shader_parameter/distortion_offset_speed = Vector2(0.04, 0.04)
+shader_parameter/erosion_speed = 0.125
+shader_parameter/erosion_max_offset = 0.06
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(-0.05, -0.05, 0)
+shader_parameter/emissionVec = Color(0.49945, 0.732753, 0.94536, 1)
+shader_parameter/CUSTOM_TIME = 0.98
+shader_parameter/texture_albedo = SubResource("CompressedTexture2D_652ou")
+shader_parameter/fadeTexture = SubResource("CompressedTexture2D_mlhfm")
+shader_parameter/noise = SubResource("NoiseTexture2D_i4q68")
+shader_parameter/fadeCurve = SubResource("CurveTexture_lj480")
+
+[sub_resource type="Resource" id="Resource_p1t6n"]
+script = ExtResource("2_n2t3b")
+updateRate = 0
+maxExtrapolationDelta = 2.0
+teleportDelta = 5.0
+
+[sub_resource type="Animation" id="Animation_1n530"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:material_override:shader_parameter/CUSTOM_TIME")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.98]
+}
+
+[sub_resource type="Animation" id="Animation_w3fl1"]
+resource_name = "magic_slash_0"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:material_override:shader_parameter/CUSTOM_TIME")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.6, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [-0.005, 0.98, 0.98]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Area3D/CollisionPolygon3D:polygon")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.4, 0.5, 0.6, 1),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [PackedVector2Array(-1.02534, -0.963581, -1.84068, -2.43645, -1.86927, -1.15385, -1.38071, -0.364628), PackedVector2Array(0.535967, 0.0412557, 0.798173, -0.412382, 0.540711, -0.736595, 0.000404358, -0.621665, -1.02534, -0.963581, -1.84068, -2.43645, -1.86927, -1.15385, -1.38071, -0.364628, -0.493775, 0.0487721), PackedVector2Array(0.535967, 0.0412557, 1.48303, -0.447308, 2.00166, -1.33424, 2.09185, -2.59699, 1.11473, -0.98097, 0.000404358, -0.621665, -1.02534, -0.963581, -1.84068, -2.43645, -1.86927, -1.15385, -1.38071, -0.364628, -0.493775, 0.0487721), PackedVector2Array(0.535967, 0.0412557, 1.48303, -0.447308, 2.00166, -1.33424, 2.09185, -2.59699, 1.11473, -0.98097, 0.000404358, -0.621665, -1.02534, -0.963581, -1.27106, -0.946379, -1.38549, -0.727059, -1.38071, -0.364628, -0.493775, 0.0487721), PackedVector2Array(0.535967, 0.0412557, 1.57986, -0.642394, 2.14058, -1.6587, 2.11955, -2.3666, 1.95835, -2.68902, 1.44669, -1.5045, 0.493467, -0.656412), PackedVector2Array(), PackedVector2Array()]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_m4p40"]
+_data = {
+"RESET": SubResource("Animation_1n530"),
+"magic_slash_0": SubResource("Animation_w3fl1")
+}
+
+[node name="Sprite3D" type="Sprite3D"]
+transform = Transform3D(2, 0, 0, 0, -8.74228e-08, 2, 0, -2, -8.74228e-08, 0, 0, 0)
+material_override = SubResource("ShaderMaterial_mlpg1")
+texture = ExtResource("2_sfdta")
+script = ExtResource("1_jxx2m")
+cuowa = SubResource("Resource_p1t6n")
+
+[node name="Area3D" type="Area3D" parent="."]
+
+[node name="CollisionPolygon3D" type="CollisionPolygon3D" parent="Area3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0331094, 2.05861, 9.03261e-08)
+
+[node name="Magic Slash" type="AnimationPlayer" parent="."]
+callback_mode_process = 0
+libraries = {
+"": SubResource("AnimationLibrary_m4p40")
+}

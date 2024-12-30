@@ -11,8 +11,11 @@ class_name MultiplayerManager extends Node
 ## system currently not possible -> therefore P2P
 
 ## TODO
-## 3. Exceptions don't cause more ones (regarding the Multiplayer Client / Server Creation)
-## Mutliplayer Node does not exist error :( & !pInfo-Error
+## (1) Exceptions don't cause more ones (regarding the Multiplayer Client / Server Creation)
+## (2) Multiplayer Node does not exist error :( & !pInfo-Error
+## -> I think that Ive fixed (30.12.24) many of them, but there might ofc be more
+## -> (2) still occurs sometimes when quitting the game, but for now I dont care
+## (3) When client joins, the first ~4s the cuowa sync is incorrect (snapping back and fourth)
 
 ##Temporary Address & Port
 var address := "127.0.0.1"
@@ -54,7 +57,7 @@ var runtimeSpawnDict:Dictionary # (String, int)
 var spawnableObjs:Array[PackedScene] = []
 var delayedClientJoinSpawnObjs:Dictionary = {} # (int(NetID), Array[int(SpawnID), Array])
 
-var localAuthorityObjectIDs := IDDistributor.new(0, 65535)
+var localAuthorityObjectIDs:IDDistributor
 
 func networkSpawn(pInstName:String, pAdditionalData:Array=[], delayedClientJoinSpawn:bool = false):
 	assert(spawnDict.has(pInstName), "Tried to spawn object with unknown name!")
@@ -109,17 +112,18 @@ func networkFrameProcess():
 			for cuowa:NetworkCUOWA in NetworkCUOWA.ALL_ORDERED[i]:
 				#multiplayer_print("Auth " + str(cuowa.hasAuthority))
 				if cuowa.hasAuthority: 
+					#multiplayer_print("Send: " + str(cuowa.ID))
 					thisFramePacket.append_array(cuowa.getCUOWA())
 					
-	#multiplayer_print("Send Packet of size " + str(len(thisFramePacket)))
+	#multiplayer_print("Send Packet " + str(thisFramePacket))
 		
 	send_packet.rpc(multiplayer_id, Main.PHYSICS_TIME, thisFramePacket)
 	
-@rpc("any_peer", "unreliable_ordered", "call_remote")
+@rpc("any_peer", "unreliable", "call_remote")
 func send_packet(multiplayerID:int, authorityTime:float, data:PackedByteArray):
 	physic_times[multiplayerID] = authorityTime
 	
-	#multiplayer_print("Received Packet of size " + str(len(data)))
+	#multiplayer_print("Received Packet " + str(data))
 	
 	var dataPointer:int = 0
 	var dataLen := len(data)
@@ -127,6 +131,8 @@ func send_packet(multiplayerID:int, authorityTime:float, data:PackedByteArray):
 		var netID:int = NetworkCUOWA.decodeInt24(data, dataPointer) 
 		var cuowaLen:int = data[dataPointer + 3]
 		dataPointer += 4
+		
+		#multiplayer_print("Recv: " + str(netID))
 		
 		if !NetworkCUOWA.ALL.has(netID): ##Object not locally available
 			dataPointer += cuowaLen
@@ -158,12 +164,14 @@ func peer_disconnected(id): ## Called at Server & Clients
 	
 	if multiplayer_id == 1:
 		customClientIDDistributor.removeID(tCustomClientID)
-	
+
 	## Destroy all network objects which got instantiated from the now disconnected peer 
 	for pObjID:int in NetworkCUOWA.ALL:
 		var netC:NetworkCUOWA = NetworkCUOWA.ALL[pObjID]
 		if netC.authorityCustomClientID == tCustomClientID:
 			destroy(pObjID)
+		
+	PlayerManager.remove_player(id)
 		
 	multiplayer_print("Player Disconnected: " + str(id))
 
@@ -180,9 +188,24 @@ func connected_to_server(): ## Only from Clients
 
 func connection_failed(): ## Only from Clients
 	multiplayer_print("Connection Failed")
+	
+	if Main.M.UI.currentScene.has_method("changeStatus"): Main.M.UI.currentScene.changeStatus("Failed to connect")
 
 func server_disconnected(): ## Only from Clients
 	multiplayer_print("Server Disconnected")
+	
+	SaveSystem._save()
+	Main.M.stopBiomThread()
+	NetworkCUOWA.clearAll()
+	TerrainPixelManager.pixel.clear()
+	PlayerManager.clear_players()
+	Main.M.Simulation.ChunkManager.ClearMainLoopChunks()
+	peer.close()
+	multiplayer.multiplayer_peer = null
+	Main.M.Cam3D.set_follow_target(Main.M.MNode)
+	Main.M.MainSceneManager.unload()
+	Main.M.UI.clearSceneHistory()
+	Main.M.UI.loadScene("Worlds")
 	
 func joined_game(): ## equivalent to connected_to_server, but server calls it aswell
 	add_player_.rpc(Main.USER_ID, multiplayer_id)
@@ -196,13 +219,14 @@ func setCustomPeerIDs(pIDs:Dictionary, pRevDict:Dictionary):
 	custom_id_dict = pIDs
 	custom_peer_id = custom_id_dict[multiplayer_id]
 	customIDsToMultIDsDict = pRevDict
-	localAuthorityObjectIDs = IDDistributor.new(custom_peer_id * 65536, custom_peer_id * 65536 + 65535)
+	if localAuthorityObjectIDs == null:
+		localAuthorityObjectIDs = IDDistributor.new(custom_peer_id * 65536, custom_peer_id * 65536 + 65535)
 	multiplayer_print("PeerID: " + str(custom_peer_id))
 	
-	if !localPlayerSpawned: 	
+	if !localPlayerSpawned:
+		localPlayerSpawned = true
 		networkSpawn("Player", [], true)
 		Main.M.Simulation.LocalTDPlayerNode = lastSpawnedInstance
-		localPlayerSpawned = true
 	
 @rpc("reliable", "authority", "call_remote")
 func kick():
@@ -212,6 +236,7 @@ func kick():
 func add_player_(userID:String, multiplayerID:int):
 	if PlayerManager.has_player(userID):	
 		if multiplayer_id == 1:
+			print("KICK " + str(multiplayer_id))
 			kick.rpc_id(multiplayerID)
 		return
 		
@@ -254,6 +279,7 @@ func multiplayer_print(str):
 func createServer(pPort:int):
 	Main.M.UI.currentScene.changeStatus("Creating Server")
 	
+	peer = ENetMultiplayerPeer.new()
 	port = pPort
 	
 	var error = peer.create_server(port, 10)
@@ -262,13 +288,14 @@ func createServer(pPort:int):
 		print("Creation from server called error: " + str(error))
 		Main.M.UI.currentScene.changeStatus("Failed to create server")
 		return
+		
+	multiplayer.multiplayer_peer = peer
 	
 	print("Successfully created server :)")
 		
 	custom_peer_id = customClientIDDistributor.newID()
 	setCustomPeerIDs({1:0}, {0:1})
 	peer.host.compress(compressionAlgorithm)
-	multiplayer.multiplayer_peer = peer
 	
 	joined_game()
 	
@@ -276,6 +303,8 @@ func createServer(pPort:int):
 	
 func connectToServer(pAddress:String, pPort:int):
 	Main.M.UI.currentScene.changeStatus("Connecting to Server")
+	
+	peer = ENetMultiplayerPeer.new()
 	address = pAddress
 	port = pPort
 
@@ -284,7 +313,8 @@ func connectToServer(pAddress:String, pPort:int):
 	if err != OK:
 		Main.M.UI.currentScene.changeStatus("Failed to connect")
 		return
+		
+	multiplayer.multiplayer_peer = peer
 	
 	peer.host.compress(compressionAlgorithm)
-	multiplayer.multiplayer_peer = peer
 	multiplayer_id = multiplayer.get_unique_id()

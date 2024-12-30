@@ -6,6 +6,8 @@ class_name NetworkCUOWA extends Resource
 ## Required variables & methods:
 #var cuowa:NetworkCUOWA
 #func on_spawn(data:Array): INCLUDING initCuowa call & add_child
+#cuowa.initCUOWA(self)
+#Main.M.MainSceneManager.currentScene.add_child(self)
 #func on_destroy(data:Array): pass
 
 static var ALL:Dictionary = {} # (int, NetworkCuowa)
@@ -55,9 +57,15 @@ func removeCUOWA(pData:Array):
 	ALL_ORDERED[updateRate].erase(self)
 	mainObj.queue_free()
 	
+func initCUOWA(pObj:Node): pass
 func getCUOWA(): pass
 func updateCUOWA(pData:PackedByteArray, pOffset:int): pass
 func interpolateCUOWA(): pass
+
+static func clearAll():
+	ALL.clear()
+	for i in range(0, len(ALL_ORDERED)):
+		ALL_ORDERED[i].clear()
 
 static func decodeVec3(data:PackedByteArray, offset:int=0) -> Vector3:
 	return Vector3(
@@ -75,4 +83,4 @@ static func encodeVec3(vec:Vector3) -> PackedByteArray:
 	return tArr
 	
 static func decodeInt24(data:PackedByteArray, offset:int=0) -> int:
-	return data[0] | ((data[1] << 8)) | ((data[2] << 16))
+	return data[0+offset] | (data[1+offset] << 8) | (data[2+offset] << 16)

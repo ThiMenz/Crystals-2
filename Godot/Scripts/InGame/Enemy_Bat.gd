@@ -7,6 +7,8 @@ func on_spawn(data:Array):
 
 func simulation_process(delta:float):
 
+	if not is_multiplayer_authority(): return
+
 	updateTarget()
 	updatePath()
 	var curPos := moveAlongPath(speed * delta)

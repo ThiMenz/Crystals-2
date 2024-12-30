@@ -1,0 +1,76 @@
+[gd_resource type="Shader" format=3 uid="uid://bxoq2opgsu4o8"]
+
+[resource]
+code = "shader_type spatial; // spatial = 3D rendering
+render_mode blend_mix; // Default, aber einfach um die Syntax zu sehen
+
+uniform float customTime;
+
+uniform vec4 albedo : source_color;
+uniform sampler2D texture_albedo : source_color,filter_linear_mipmap,repeat_enable;
+
+uniform vec3 uv1_scale;
+uniform vec3 uv1_offset;
+
+uniform sampler2D mask;
+
+uniform sampler2D noise;
+uniform float distortion_intensity = .1;
+uniform vec2 distortion_tiling = vec2(1., 1.);
+uniform vec2 distortion_offset_speed;
+
+uniform float erosion_speed = .5;
+uniform float erosion_max_offset = .5;
+
+uniform sampler2D testCurve;
+
+//uniform float point_size : hint_range(0,128);
+//uniform sampler2D texture_orm : hint_roughness_g,filter_linear_mipmap,repeat_enable;
+
+
+void vertex() {
+	// - - Tiling & Offsetting - -
+	UV = UV * uv1_scale.xy + uv1_offset.xy;
+	
+	// Für particle-shaders: INSTANCE_CUSTOM.y
+}
+
+void fragment() {
+	
+	//customTime = TIME;
+	
+	vec2 base_uv = UV;
+	
+	// - - Polar Coordinates - -
+	//float angle = atan(base_uv.y, base_uv.x) / (2. * PI);
+	//float dist = length(base_uv.xy);
+	//vec2 polar_uv = vec2(angle + 1. * sin(customTime), dist);
+	
+	// - - Distortion - -
+	//vec2 noise_uv = polar_uv * distortion_tiling + distortion_offset_speed * customTime;
+	//float noise_tex = texture(noise, noise_uv).r;
+	//vec2 distortion_uv = polar_uv + noise_tex * distortion_intensity;
+	
+	// - - Erosion - -
+	//vec4 erosion_tex = texture(noise, polar_uv);
+	//float erosion_min = (sin(customTime * erosion_speed) + 1.) * .5;
+	//float erosion_max = erosion_min + erosion_max_offset;
+	//float erosion_val = smoothstep(erosion_min, erosion_max, erosion_tex.r);
+	
+	// - - Standard Albedo - -
+	vec4 albedo_tex = texture(texture_albedo, base_uv);
+	ALBEDO = albedo.rgb * albedo_tex.rgb;
+	
+	float maskVal = max(texture(mask, (base_uv - uv1_offset.xy) / uv1_scale.xy).r, customTime);
+	ALPHA *= albedo.a * albedo_tex.a * maskVal; // * erosion_val
+	
+	// - - ORM Texture Stuff - -
+	//vec4 orm_tex = texture(texture_orm,base_uv);
+	//ROUGHNESS = orm_tex.g;
+	//METALLIC = orm_tex.b;
+	
+	// - - MASKING - - 
+	//ALPHA *= UV.r;
+	//ALPHA *= texture(mask, distortion_uv).r;
+}
+"
